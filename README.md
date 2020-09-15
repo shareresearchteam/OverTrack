@@ -20,3 +20,9 @@ exporting data to excel sheet
 data.to_excel(r'C:\Users\Connor\Desktop\OSU_Lab\multi-object-tracking\Tracking Data\data.xlsx', index = True, header=["Centroid"])
 
 interactions.to_excel(r'C:\Users\Connor\Desktop\OSU_Lab\multi-object-tracking\Tracking Data\interactions.xlsx', index = True, header=["Centroid"])
+
+
+python3 ROITrackerFullFrames.py --video videos/video_name.video_type --tracker csrt
+
+Alter numberOfChildrenPlusRobot variable to the number of children in the play group + 1 for the robot
+
