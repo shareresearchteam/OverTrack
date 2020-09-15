@@ -8,9 +8,6 @@ ROITrackerSelectFrames can take a frame every N seconds, this was deemed not use
 Dependencies
 
 numpy - pip3 install numpy
-
 imutils - pip3 install imutils
-
 cv2 - pip3 install opencv-contrib-python (needs to be contrib version)
-
 pandas - pip3 install pandas
