@@ -16,6 +16,7 @@ openpyxl - pip3 install openpyxl
 
 Update path for excel sheet. Open two blank excel books and save them and enter the path to them at the bottom of the code.
 
-# exporting data to excel sheet 
+exporting data to excel sheet 
 data.to_excel(r'C:\Users\Connor\Desktop\OSU_Lab\multi-object-tracking\Tracking Data\data.xlsx', index = True, header=["Centroid"])
+
 interactions.to_excel(r'C:\Users\Connor\Desktop\OSU_Lab\multi-object-tracking\Tracking Data\interactions.xlsx', index = True, header=["Centroid"])
