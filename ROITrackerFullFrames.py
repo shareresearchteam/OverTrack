@@ -1,9 +1,9 @@
 # USAGE
-# python3 ROITrackerwithDictTrackersKeyChangeSelectFrames.py --video videos/soccer_01.mp4 --tracker csrt
+# python3 ROITrackerFullFrames.py --video videos/Test2.avi --tracker csrt
 
 #################################################################################################
 # EXPERIMENT SPECIFIC! (ALTER THIS AS NECESSARY FOR EACH USE)                                   #
-numberOfChildrenPlusRobot = 11 # the number of children in the play group + 1 for the robot     #
+numberOfChildrenPlusRobot = 3 # the number of children in the play group + 1 for the robot     #
 #################################################################################################
 
 # IMPORTS 
@@ -109,7 +109,7 @@ childCount = 0 # child status count
 # constants for distance calculations 
 dirSocialInteraction = 1 # ft
 socialPlay = 3 # ft 
-pix2ft = 50 # set based on "Test2.avi" select new factor by pressing "s"
+pix2ft = 50 # default set based on "Test2.avi" select new factor by pressing "s"
 
 # Note: For all box indexes the format is as follows box = (x,y,w,h)
 # where x and y are the coordinates of the top left corner of the box
@@ -126,7 +126,7 @@ while True:
     #    if frameID % multiplier == 0:
     #    if args.get("video", True):
     if not args.get("video", False):
-        time_track = time.time() # CHANGE
+        time_track = time.time() 
     else:
         time_track = vs.get(cv2.CAP_PROP_POS_MSEC)/1000    
 
@@ -275,9 +275,15 @@ while True:
                         elif dist == 0.0: # 0 = Self Identification 
                             store.append('SELF')
                         elif dist < dirSocialInteraction: # < 3 ft = Directed Social Interaction (DSI)
-                            store.append('DSI with ' + str(count_in))
+                            if count_in == 0:
+                                store.append('DSI with r')
+                            else:
+                                store.append('DSI with ' + str(count_in))
                         elif dist < socialPlay: # < 1 ft = Social Play (SP)
-                            store.append('SP with ' + str(count_in))
+                            if count_in == 0:
+                                store.append('SP with r')
+                            else:
+                                store.append('SP with ' + str(count_in))        
                         else: # if dist is larger than all categories there is no interaction (NI)
                             store.append('NI')
                             
@@ -319,7 +325,7 @@ while True:
             velocity = [None]*numberOfChildrenPlusRobot
             for count in range(numberOfChildrenPlusRobot):
                 if currentPlace[count] != 'NR' and lastPlace[count] != 'NR':
-                    velocity[count] = (np.array(currentPlace[count])-np.array(lastPlace[count]))*pix2ft/time_track
+                    velocity[count] = (np.array(currentPlace[count])-np.array(lastPlace[count]))*pix2ft/(time_track-lastTime)
                 elif currentPlace[count] == 'NR' or lastPlace[count] == 'NR':
                     velocity[count] = 'NR'
             velocityInstance = pd.DataFrame([velocity], index = [time_track], columns = [box_title])
@@ -333,6 +339,7 @@ while True:
 
  # KEY COMMANDS (IN VIDEO LOOP)
  ######################################
+    # defining key commands 
     keys = {ord("1"): 1, ord("2"): 2, ord("3"): 3, ord("4"): 4,
             ord("5"): 5, ord("6"): 6, ord("7"): 7, ord("8"): 8, 
             ord("9"): 9, ord("0"): 10, ord("r"): 0}
@@ -358,15 +365,14 @@ while True:
     elif key == ord('b'):
         playarea = cv2.selectROI("Frame", frame, fromCenter=False,
             showCrosshair=True)		
-    
+    # if "s" is pressed define scale 
     elif key == ord('s'):
         scale = cv2.selectROI("Frame", frame, fromCenter=False,
             showCrosshair=True)  
         
         squareDiagonal = (2**2+2**2)**(1/2) # assumes squares are 2x2 
-        selectedDiagonal = (scale[2]**2+scale[3]**2)**(1/2)
-        # length of square diagonal (feet) is divided by the selected diagonal (pixels)
-        pix2ft = squareDiagonal/selectedDiagonal # multiply by distance to convert into ft
+        selectedDiagonal = (scale[2]**2+scale[3]**2)**(1/2) # scale[2] is width scale[3] is height         # length of square diagonal (feet) is divided by the selected diagonal (pixels)
+        pix2ft = squareDiagonal/selectedDiagonal # multiply by a distance to convert into ft
          
     # if the `q` key was pressed, break from the loop
     elif key == ord("q"):
@@ -388,3 +394,4 @@ cv2.destroyAllWindows()
 # exporting data to excel sheet 
 data.to_excel(r'C:\Users\Connor\Desktop\OSU_Lab\multi-object-tracking\Tracking Data\data.xlsx', index = True, header=["Centroid"])
 interactions.to_excel(r'C:\Users\Connor\Desktop\OSU_Lab\multi-object-tracking\Tracking Data\interactions.xlsx', index = True, header=["Centroid"])
+velocities.to_excel(r'C:\Users\Connor\Desktop\OSU_Lab\multi-object-tracking\Tracking Data\velocities.xlsx', index = True, header=["Centroid"])
