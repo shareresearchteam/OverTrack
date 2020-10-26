@@ -3,7 +3,7 @@
 
 #################################################################################################
 # EXPERIMENT SPECIFIC! (ALTER THIS AS NECESSARY FOR EACH USE)                                   #
-numberOfChildrenPlusRobot = 11 # the number of children in the play group + 1 for the robot     #
+numberOfChildrenPlusRobot = 4 # the number of children in the play group + 1 for the robot     #
 #################################################################################################
 
 # IMPORTS 
@@ -24,24 +24,27 @@ import time
 # supresses warning about data type comparison between list and np.array 
 import warnings
 import numpy as np
-warnings.simplefilter(action='ignore', category=FutureWarning)
+#supresses 'future warning' for numpy
+warnings.simplefilter(action='ignore', category=FutureWarning) 
 
 # DEFINTIONS 
 ######################################
-# function to check if something is empty 
+# function to check if something is empty (list, dictionary, set, string, tuple via python) 
 def is_empty(any_structure):
     if any_structure:
-        return False
+        return False #structure is not empty
     else:
-        return True
+        return True #structure is empty
 
 # PRE-LOOP 
 ######################################
 # construct the argument parser and parse the arguments
+# gives program different imput on the fly without changing the code
 ap = argparse.ArgumentParser()
 ap.add_argument("-v", "--video", type=str,
     help="path to input video file")
-ap.add_argument("-t", "--tracker", type=str, default="kcf",
+#sets default tracker to csrt if just running through real time
+ap.add_argument("-t", "--tracker", type=str, default="csrt",
     help="OpenCV object tracker type")
 args = vars(ap.parse_args())
 
@@ -65,6 +68,7 @@ if not args.get("video", False):
 
 # otherwise, grab a reference to the video file
 else:
+    #vs = VideoStream(args["video"]).start()
     vs = FileVideoStream(args["video"]).start()
     time.sleep(5.0)
 
@@ -122,7 +126,8 @@ pix2ft = 50 # set based on "Test2.avi" select new factor by pressing "s"
 # VIDEO LOOP 
 ######################################
 # loop over frames from the video stream
-while vs.more():
+#while vs.more(): changed to while True to open up camera
+while True:
     key = []
     # frame ID
     #frameId = int(round(vs.get(1))
@@ -141,6 +146,7 @@ while vs.more():
     macroCount = macroCount + 1 
 
     # check to see if we have reached the end of the stream
+    # part might need to be changed from being a break so the data saves to excel when the video ends
     if frame is None:
         break
 
@@ -389,5 +395,9 @@ else:
 cv2.destroyAllWindows()
 
 # exporting data to excel sheet 
-data.to_excel(r'C:\Users\Connor\Desktop\OSU_Lab\multi-object-tracking\Tracking Data\data.xlsx', index = True, header=["Centroid"])
-interactions.to_excel(r'C:\Users\Connor\Desktop\OSU_Lab\multi-object-tracking\Tracking Data\interactions.xlsx', index = True, header=["Centroid"])
+#data.to_excel(r'C:\Users\Connor\Desktop\OSU_Lab\multi-object-tracking\Tracking Data\data.xlsx', index = True, header=["Centroid"])
+#interactions.to_excel(r'C:\Users\Connor\Desktop\OSU_Lab\multi-object-tracking\Tracking Data\interactions.xlsx', index = True, header=["Centroid"])
+data.to_excel(r'C:\Users\chris\Desktop\python\infant_robot_interaction-master\data.xlsx', index = True, header=["Centroid"])
+interactions.to_excel(r'C:\Users\chris\Desktop\python\infant_robot_interaction-master\interactions.xlsx', index = True, header=["Centroid"])
+velocities.to_excel(r'C:\Users\Chris\Desktop\python\infant_robot_interaction-master\velocities.xlsx', index = True, header=["Centroid"])
+
