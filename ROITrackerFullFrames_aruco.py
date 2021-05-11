@@ -58,7 +58,7 @@ def lifeguard(gpcam):
 ap = argparse.ArgumentParser()
 ap.add_argument("-v", "--video", type=str,
     help="path to input video file")
-ap.add_argument("-t", "--tracker", type=str, default="csrt",
+ap.add_argument("-t", "--tracker", type=str, default="medianflow",
     help="OpenCV object tracker type")
 ap.add_argument("-y", "--type", type=str,
 	default="DICT_5X5_1000",
@@ -213,6 +213,39 @@ while True:
             boxes[count] = 'NR'
     	# detect ArUco markers in the input frame
     (corners, ids, rejected) = cv2.aruco.detectMarkers(frame, arucoDict, parameters=arucoParams)
+    # verify *at least* one ArUco marker was detected
+    if len(corners) > 0:
+    # print("hello")
+        # flatten the ArUco IDs list
+        ids = ids.flatten()
+        # loop over the detected ArUCo corners
+        for (markerCorner, markerID) in zip(corners, ids):
+            # extract the marker corners (which are always returned in
+            # top-left, top-right, bottom-right, and bottom-left order)
+            corners = markerCorner.reshape((4, 2))
+            (topLeft, topRight, bottomRight, bottomLeft) = corners
+            # convert each of the (x, y)-coordinate pairs to integers
+            topRight = (int(topRight[0]), int(topRight[1]))
+            bottomRight = (int(bottomRight[0]), int(bottomRight[1]))
+            bottomLeft = (int(bottomLeft[0]), int(bottomLeft[1]))
+            topLeft = (int(topLeft[0]), int(topLeft[1]))
+            # draw the bounding box of the ArUCo detection
+            cv2.line(frame, topLeft, topRight, (0, 255, 0), 2)
+            cv2.line(frame, topRight, bottomRight, (0, 255, 0), 2)
+            cv2.line(frame, bottomRight, bottomLeft, (0, 255, 0), 2)
+            cv2.line(frame, bottomLeft, topLeft, (0, 255, 0), 2)
+            # compute and draw the center (x, y)-coordinates of the
+            # ArUco marker
+            cX = int((topLeft[0] + bottomRight[0]) / 2.0)
+            cY = int((topLeft[1] + bottomRight[1]) / 2.0)
+            cv2.circle(frame, (cX, cY), 4, (0, 0, 255), -1)
+            # draw the ArUco marker ID on the frame
+            cv2.putText(frame, str(markerID),
+                    (topLeft[0], topLeft[1] - 15),
+                    cv2.FONT_HERSHEY_SIMPLEX,
+                    0.5, (0, 255, 0), 2)
+            # print("center", cX, cY)
+
     # defining playarea box 
     if is_empty(playarea) == False:
         # defining the top left and bottom right points of the bb to 
@@ -296,67 +329,67 @@ while True:
             else: # case where box for that child has not be chosen 
                 centroids.append('NR')
 
-##        # instance that will store row of interactions to be placed in main 
-##        # interactions dataframe
-##        instance = pd.DataFrame()  
-##        # intPlaceholder is a list that is overwritten by interactions this is 
-##        # used to easily fill instance since DataFrames can be finnicky
-##        intPlaceholder = ["NR"]*numberOfChildrenPlusRobot
-##        # loop to calculate the distances between all centroids 
-##        if len(centroids) >= 2:
-##            # outer loop cycles through centroids, inner loop compares on centroid to the rest
-##            for count_out, centroid in enumerate(centroids):
-##                # converting to array for distance calculation
-##                centroid = np.array(centroid)
-##                # intializing interaction list that will be reset for each centroid 
-##                store = []
-##                # if the centroid is not registered the value in store that represents it 
-##                # should also be not registered 
-##                if centroid == 'NR':
-##                    store = ['NR']
-##                else: 
-##                    # looping through other centroids 
-##                    for count_in in range(len(centroids)): 
-##                        # if the centroid is not registered append NR to store for that centroid's
-##                        # position relative to the centroid that is looping 
-##                        if centroids[count_in] == 'NR':
-##                            dist = 'NR'
-##                        else:
-##                            centroids[count_in] = np.array(centroids[count_in])
-##                            # calculating the distance between centroids and converting to ft
-##                            dist = np.linalg.norm(centroid - centroids[count_in])*pix2ft
-##
-##                        # categorizing distance between centroids 
-##                        if dist == 'NR': # dist is not registered bc centroid disappeared 
-##                            store.append('NR')
-##                        elif dist == 0.0: # 0 = Self Identification 
-##                            store.append('SELF')
-##                        elif dist < dirSocialInteraction: # < 3 ft = Directed Social Interaction (DSI)
-##                            if count_in == 0:
-##                                store.append('DSI with r')
-##                            else:
-##                                store.append('DSI with ' + str(count_in))
-##                        elif dist < socialPlay: # < 1 ft = Social Play (SP)
-##                            if count_in == 0:
-##                                store.append('SP with r')
-##                            else:
-##                                store.append('SP with ' + str(count_in))        
-##                        else: # if dist is larger than all categories there is no interaction (NI)
-##                            store.append('NI')
-##                            
-##                # storing interaction data 
-##                intPlaceholder[count_out:count_out+1] = [store]
-##            
-##            # creating dataframe to store centroids
-##            instance = pd.DataFrame([intPlaceholder],index = [time_track], columns = [box_title])
-##            # updating row of interactions   
-##            interactions = pd.concat([interactions, instance])
-##
-##        for count, centroid in enumerate(centroids):
-##            if centroid != 'NR':
-##                # reverting centroids to list so they aren't stored as np.arrays
-##                centroid = centroid.tolist()
-##                centroids[count] = centroid
+        # instance that will store row of interactions to be placed in main 
+        # interactions dataframe
+        instance = pd.DataFrame()  
+        # intPlaceholder is a list that is overwritten by interactions this is 
+        # used to easily fill instance since DataFrames can be finnicky
+        intPlaceholder = ["NR"]*numberOfChildrenPlusRobot
+        # loop to calculate the distances between all centroids 
+        if len(centroids) >= 2:
+            # outer loop cycles through centroids, inner loop compares on centroid to the rest
+            for count_out, centroid in enumerate(centroids):
+                # converting to array for distance calculation
+                centroid = np.array(centroid)
+                # intializing interaction list that will be reset for each centroid 
+                store = []
+                # if the centroid is not registered the value in store that represents it 
+                # should also be not registered 
+                if centroid == 'NR':
+                    store = ['NR']
+                else: 
+                    # looping through other centroids 
+                    for count_in in range(len(centroids)): 
+                        # if the centroid is not registered append NR to store for that centroid's
+                        # position relative to the centroid that is looping 
+                        if centroids[count_in] == 'NR':
+                            dist = 'NR'
+                        else:
+                            centroids[count_in] = np.array(centroids[count_in])
+                            # calculating the distance between centroids and converting to ft
+                            dist = np.linalg.norm(centroid - centroids[count_in])*pix2ft
+
+                        # categorizing distance between centroids 
+                        if dist == 'NR': # dist is not registered bc centroid disappeared 
+                            store.append('NR')
+                        elif dist == 0.0: # 0 = Self Identification 
+                            store.append('SELF')
+                        elif dist < dirSocialInteraction: # < 3 ft = Directed Social Interaction (DSI)
+                            if count_in == 0:
+                                store.append('DSI with r')
+                            else:
+                                store.append('DSI with ' + str(count_in))
+                        elif dist < socialPlay: # < 1 ft = Social Play (SP)
+                            if count_in == 0:
+                                store.append('SP with r')
+                            else:
+                                store.append('SP with ' + str(count_in))        
+                        else: # if dist is larger than all categories there is no interaction (NI)
+                            store.append('NI')
+                            
+                # storing interaction data 
+                intPlaceholder[count_out:count_out+1] = [store]
+            
+            # creating dataframe to store centroids
+            instance = pd.DataFrame([intPlaceholder],index = [time_track], columns = [box_title])
+            # updating row of interactions   
+            interactions = pd.concat([interactions, instance])
+
+        for count, centroid in enumerate(centroids):
+            if centroid != 'NR':
+                # reverting centroids to list so they aren't stored as np.arrays
+                centroid = centroid.tolist()
+                centroids[count] = centroid
         
 
         if is_empty(frameTrack) == True:
@@ -379,14 +412,14 @@ while True:
             # indexing position from current frame
             currentPlace = addition.loc[time_track,:]
             # velocity calculation
-##            velocity = [None]*numberOfChildrenPlusRobot
-##            for count in range(numberOfChildrenPlusRobot):
-##                if currentPlace[count] != 'NR' and lastPlace[count] != 'NR':
-##                    velocity[count] = (np.array(currentPlace[count])-np.array(lastPlace[count]))*pix2ft/(time_track-lastTime)
-##                elif currentPlace[count] == 'NR' or lastPlace[count] == 'NR':
-##                    velocity[count] = 'NR'
-##            velocityInstance = pd.DataFrame([velocity], index = [time_track], columns = [box_title])
-##            velocities = pd.concat([velocities, velocityInstance])
+            velocity = [None]*numberOfChildrenPlusRobot
+            for count in range(numberOfChildrenPlusRobot):
+                if currentPlace[count] != 'NR' and lastPlace[count] != 'NR':
+                    velocity[count] = (np.array(currentPlace[count])-np.array(lastPlace[count]))*pix2ft/(time_track-lastTime)
+                elif currentPlace[count] == 'NR' or lastPlace[count] == 'NR':
+                    velocity[count] = 'NR'
+            velocityInstance = pd.DataFrame([velocity], index = [time_track], columns = [box_title])
+            velocities = pd.concat([velocities, velocityInstance])
                     
     # show the output frame
     cv2.imshow("Frame", frame)
