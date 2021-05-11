@@ -60,36 +60,6 @@ ap.add_argument("-v", "--video", type=str,
     help="path to input video file")
 ap.add_argument("-t", "--tracker", type=str, default="csrt",
     help="OpenCV object tracker type")
-ap.add_argument("-y", "--type", type=str,
-	default="DICT_5X5_1000",
-	help="type of ArUCo tag to detect")
-args = vars(ap.parse_args())
-
-
-ARUCO_DICT = {
-	"DICT_4X4_50": cv2.aruco.DICT_4X4_50,
-	"DICT_4X4_100": cv2.aruco.DICT_4X4_100,
-	"DICT_4X4_250": cv2.aruco.DICT_4X4_250,
-	"DICT_4X4_1000": cv2.aruco.DICT_4X4_1000,
-	"DICT_5X5_50": cv2.aruco.DICT_5X5_50,
-	"DICT_5X5_100": cv2.aruco.DICT_5X5_100,
-	"DICT_5X5_250": cv2.aruco.DICT_5X5_250,
-	"DICT_5X5_1000": cv2.aruco.DICT_5X5_1000,
-	"DICT_6X6_50": cv2.aruco.DICT_6X6_50,
-	"DICT_6X6_100": cv2.aruco.DICT_6X6_100,
-	"DICT_6X6_250": cv2.aruco.DICT_6X6_250,
-	"DICT_6X6_1000": cv2.aruco.DICT_6X6_1000,
-	"DICT_7X7_50": cv2.aruco.DICT_7X7_50,
-	"DICT_7X7_100": cv2.aruco.DICT_7X7_100,
-	"DICT_7X7_250": cv2.aruco.DICT_7X7_250,
-	"DICT_7X7_1000": cv2.aruco.DICT_7X7_1000,
-}
-# verify that the supplied ArUCo tag exists and is supported by
-# OpenCV
-if ARUCO_DICT.get(args["type"], None) is None:
-	print("[INFO] ArUCo tag of '{}' is not supported".format(
-		args["type"]))
-	sys.exit(0)
 
 # initialize a dictionary that maps strings to their corresponding
 # OpenCV object tracker implementations
@@ -122,11 +92,6 @@ if not args.get("video", False):
 else:
     vs = cv2.VideoCapture(args["video"])
  
-# load the ArUCo dictionary and grab the ArUCo parameters
-print("[INFO] detecting '{}' tags...".format(args["type"]))
-arucoDict = cv2.aruco.Dictionary_get(ARUCO_DICT[args["type"]])
-arucoParams = cv2.aruco.DetectorParameters_create()
-# initializing variables 
 frameTrack = [] # tracks frame 
 box = [] # iterates through each box in boxes 
 box_title = [] # holds all titles that label the dataframe 
@@ -211,8 +176,6 @@ while True:
             boxes[count] = box 
         else: 
             boxes[count] = 'NR'
-    	# detect ArUco markers in the input frame
-    (corners, ids, rejected) = cv2.aruco.detectMarkers(frame, arucoDict, parameters=arucoParams)
     # defining playarea box 
     if is_empty(playarea) == False:
         # defining the top left and bottom right points of the bb to 
