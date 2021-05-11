@@ -1,4 +1,4 @@
-# Infant-Tobot Interaction
+# Infant-Robot Interaction
 video tracking software
 
 ROITrackerFullFrames is the most basic version of the tracker 
@@ -16,9 +16,7 @@ pandas - pip3 install pandas
 openpyxl - pip3 install openpyxl
 ```
 
-Update path for excel sheet. Open two blank excel books and save them and enter the path to them at the bottom of the code.
-
-exporting data to excel sheet 
+Update path for excel sheet. Open two blank excel books and save them and enter the path to them at the bottom of the code. Example shown below
 ```
 data.to_excel(r'C:\Users\Connor\Desktop\OSU_Lab\multi-object-tracking\Tracking Data\data.xlsx', index = True, header=["Centroid"])
 interactions.to_excel(r'C:\Users\Connor\Desktop\OSU_Lab\multi-object-tracking\Tracking Data\interactions.xlsx', index = True, header=["Centroid"])
