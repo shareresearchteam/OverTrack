@@ -25,6 +25,8 @@ interactions.to_excel(r'C:\Users\Connor\Desktop\OSU_Lab\multi-object-tracking\Tr
 Alter numberOfChildrenPlusRobot variable to the number of children in the play group + 1 for the robot
 
 To run:
-python3 ROITrackerFullFrames.py --video videos/video_name.video_type --tracker csrt --type (define aruco type)
+python3 ROITrackerFullFrames.py --video videos/video_name.video_type --tracker csrt 
+
+for the aruco file, add parameter --type (define aruco dictionary type)
 
 
