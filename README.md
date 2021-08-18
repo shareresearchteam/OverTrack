@@ -19,11 +19,11 @@ openpyxl - pip3 install openpyxl
 ```
 
 2. Create a catkin workspace (if you do not have one already)
-3. Navigate to the src folder in your catkin workspace: cd ~/catkin_ws/src
-4. Clone this repository: '''git clone https://github.com/shareresearchteam/infant_robot_interaction'''
-5. Compile and build the package: cd ~/catkin_ws && catkin_make
-6. Add the catkin workspace to your ROS environment: source ~/catkin_ws/devel/setup.bash
-7. Run the launch file depending on your version of ROS: roslaunch camera_tracking camera_tracking.launch
+3. Navigate to the src folder in your catkin workspace: ```cd ~/catkin_ws/src```
+4. Clone this repository: ```git clone https://github.com/shareresearchteam/infant_robot_interaction```
+5. Compile and build the package: ```cd ~/catkin_ws && catkin_make```
+6. Add the catkin workspace to your ROS environment: ```source ~/catkin_ws/devel/setup.bash```
+7. Run the launch file depending on your version of ROS: ```roslaunch camera_tracking camera_tracking.launch```
 
 # Other Notes
 If this tool is being used on Windows, the file path much be specified. This is at the end of each script and an example of the file path listing is shown below.
