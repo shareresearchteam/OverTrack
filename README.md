@@ -25,6 +25,15 @@ openpyxl - pip3 install openpyxl
 6. Add the catkin workspace to your ROS environment: ```source ~/catkin_ws/devel/setup.bash```
 7. Run the launch file depending on your version of ROS: ```roslaunch camera_tracking camera_tracking.launch```
 
+Usage:
+The following commands are used to operate the tool. 
+b - Allows user to draw perimeter box. This is needed to ensure that if a tracked ROI leaves the perimeter, then it will be removed and can be re-drawn when the ROI comes back within the perimeter box. 
+s - Allows user to draw a box that defines the scale. TODO - does this need some tweaking?
+r - Allows user to draw a box over the robot and track it independently of other ROI in the environment.
+1-9 - Allows user to draw a box over a ROI and track it with the numerical indicator.
+c - Cancels a drawing operation
+q - Quits the program and saves the data. Using control+c will not save the data to a spreadsheet.
+
 # Other Notes
 If this tool is being used on Windows, the file path much be specified. This is at the end of each script and an example of the file path listing is shown below.
 ```
@@ -35,7 +44,7 @@ interactions.to_excel(r'C:\Users\Connor\Desktop\OSU_Lab\multi-object-tracking\Tr
 The variable numberOfChildrenPlusRobot can be altered if more bounding boxes are needed (up to a maximum of 10). 
 
 # Running without ROS
-Example command:
-python3 ROITrackerFullFrames.py --video videos/video_name.video_type --tracker csrt 
+Example command for running on a video file (put video file in a folder called videos next to the script):
+```python3 ROITrackerFullFrames.py --video videos/video_name.video_type --tracker csrt```
 
-If you are using the aruco file, add parameter --type (define aruco dictionary type) (default is DICT_5X5_1000)
+If using the aruco file, add parameter --type (define aruco dictionary type) (default is DICT_5X5_1000)
