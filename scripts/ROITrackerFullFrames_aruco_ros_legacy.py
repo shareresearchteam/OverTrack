@@ -27,7 +27,7 @@ import threading
 import sys
 import rospy
 import rospkg
-from camera_tracking.msg import FloatArray
+from camera_tracking.msg import FloatArray, Locations
 
 
 # supresses warning about data type comparison between list and np.array 
@@ -67,8 +67,8 @@ ap.add_argument("-t", "--tracker", type=str, default="medianflow",
 ap.add_argument("-y", "--type", type=str,
     default="DICT_5X5_1000",
     help="type of ArUCo tag to detect")
-args = vars(ap.parse_args())
-print("parsed!")
+args, unknown = ap.parse_known_args()
+args = vars(args)
 
 
 ARUCO_DICT = {
@@ -111,7 +111,8 @@ OPENCV_OBJECT_TRACKERS = {
 # if a video path was not supplied, grab the reference to the web cam
 if not args.get("video", False):
     print("[INFO] starting video stream...")
-    vs = VideoStream(src=-1).start()
+    # vs = VideoStream(src=0).start()
+    vs = cv2.VideoCapture(0)
     # go pro settings
     # gpCam = GoProCamera.GoPro()
     # gpCam.livestream("start")
@@ -150,7 +151,8 @@ velocities = pd.DataFrame()
 pub = rospy.Publisher('locations', FloatArray, queue_size=1)
 rospy.init_node('tracker', anonymous=True)
 rate = rospy.Rate(10) # 10hz
-rosData = FloatArray()
+rosData = Locations()
+rosArray = FloatArray()
 
 # placeholders 
 trackers = [None]*numberOfChildrenPlusRobot # placeholder for trackers                          
@@ -211,7 +213,7 @@ while not rospy.is_shutdown():
     if frame is None:
         break
     # resize the frame (so we can process it faster)
-    frame = imutils.resize(frame, width=800)
+    # frame = imutils.resize(frame, width=800)
 
     # grab the updated bounding box coordinates (if any) for each
     # object that is being tracked
@@ -249,8 +251,8 @@ while not rospy.is_shutdown():
             # ArUco marker
             cX = int((topLeft[0] + bottomRight[0]) / 2.0)
             cY = int((topLeft[1] + bottomRight[1]) / 2.0)
-            rosData.append(cX)
-            rosData.append(cY)
+            rosData.robot_x = cX
+            rosData.robot_y = cY
             
             cv2.circle(frame, (cX, cY), 4, (0, 0, 255), -1)
             # draw the ArUco marker ID on the frame
@@ -314,8 +316,8 @@ while not rospy.is_shutdown():
     
                     # append each centroid to a list 
                     centroids.append(centroid)
-                    rosData.append(centroid[0])
-                    rosData.append(centroid[1])
+                    rosData.child_x = centroid[0]
+                    rosData.child_y = centroid[1]
                     # x and y are coordinates of top left point 
                     (x, y, w, h) = [int(v) for v in box]
                     # numbering/labeling boxes 
@@ -436,7 +438,8 @@ while not rospy.is_shutdown():
                     velocity[count] = 'NR'
             velocityInstance = pd.DataFrame([velocity], index = [time_track], columns = [box_title])
             velocities = pd.concat([velocities, velocityInstance])
-    pub.publish(rosData) # publish robot and box centers to ROS                
+    rosArray.FloatArray.append(rosData)
+    pub.publish(rosArray) # publish robot and box centers to ROS                
     # show the output frame
     cv2.imshow("Frame", frame)
     key = cv2.waitKey(1) & 0xFF
@@ -497,6 +500,7 @@ else:
 # close all windows
 cv2.destroyAllWindows()
 
+# exporting data to excel sheet 
 # exporting data to excel sheet 
 data.to_excel('positions.xlsx', index = True, header=["Centroid"])
 interactions.to_excel('interactions.xlsx', index = True, header=["Centroid"])
