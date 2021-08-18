@@ -501,5 +501,7 @@ else:
 cv2.destroyAllWindows()
 
 # exporting data to excel sheet 
-data.to_excel('new.xlsx', index = True, header=["Centroid"])
-velocities.to_excel('vels.xlsx', index = True, header=["Centroid"])
+# exporting data to excel sheet 
+data.to_excel('positions.xlsx', index = True, header=["Centroid"])
+interactions.to_excel('interactions.xlsx', index = True, header=["Centroid"])
+velocities.to_excel('velocities.xlsx', index = True, header=["Centroid"])

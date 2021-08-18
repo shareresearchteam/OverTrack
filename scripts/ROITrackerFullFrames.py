@@ -393,6 +393,6 @@ else:
 cv2.destroyAllWindows()
 
 # exporting data to excel sheet 
-data.to_excel(r'C:\Users\Connor\Desktop\OSU_Lab\multi-object-tracking\Tracking Data\data.xlsx', index = True, header=["Centroid"])
-interactions.to_excel(r'C:\Users\Connor\Desktop\OSU_Lab\multi-object-tracking\Tracking Data\interactions.xlsx', index = True, header=["Centroid"])
-velocities.to_excel(r'C:\Users\Connor\Desktop\OSU_Lab\multi-object-tracking\Tracking Data\velocities.xlsx', index = True, header=["Centroid"])
+data.to_excel('positions.xlsx', index = True, header=["Centroid"])
+interactions.to_excel('interactions.xlsx', index = True, header=["Centroid"])
+velocities.to_excel('velocities.xlsx', index = True, header=["Centroid"])
