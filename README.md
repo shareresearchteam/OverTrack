@@ -25,7 +25,7 @@ openpyxl - pip3 install openpyxl
 6. Add the catkin workspace to your ROS environment: ```source ~/catkin_ws/devel/setup.bash```
 7. Run the launch file depending on your version of ROS: ```roslaunch camera_tracking camera_tracking.launch```
 
-# Usage:
+# Usage
 
 The following commands are used to operate the tool. 
 
