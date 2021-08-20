@@ -25,19 +25,14 @@ openpyxl - pip3 install openpyxl
 6. Add the catkin workspace to your ROS environment: ```source ~/catkin_ws/devel/setup.bash```
 7. Run the launch file depending on your version of ROS: ```roslaunch camera_tracking camera_tracking.launch```
 
-Usage:
+# Usage:
+
 The following commands are used to operate the tool. 
-
 b - Allows user to draw perimeter box. This is needed to ensure that if a tracked ROI leaves the perimeter, then it will be removed and can be re-drawn when the ROI comes back within the perimeter box.
-
 s - Allows user to draw a box that defines the scale. TODO - does this need some tweaking?
-
 r - Allows user to draw a box over the robot and track it independently of other ROI in the environment.
-
 1-9 - Allows user to draw a box over a ROI and track it with the numerical indicator.
-
 c - Cancels a drawing operation
-
 q - Quits the program and saves the data. Using control+c will not save the data to a spreadsheet.
 
 # Other Notes
