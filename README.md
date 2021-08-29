@@ -1,4 +1,4 @@
-# Overhead Camera Tracking System
+# Overhead Person Camera Tracking System
 This tool is used to track regions-of-interest (ROI) from a single overhead camera by drawing bounding boxes and publish those locations in real time over a ROS network. In some versions of this package, a single arUco marker can be tracked automatically in addition to the bounding boxes.
 
 ROITrackerFullFrames - This file is the original and simplest version of the tracker.
@@ -6,6 +6,12 @@ ROITrackerFullFrames_aruco - This file incorporates tracking one aruco marker au
 ROITrackerFullFrames_aruco_ros - This file can be used with versions of ROS that are older than Noetic. 
 ROITrackerFullFrames_aruco_ros_legacy - This file is used with Python3 only and incorporates the legacy versions of the OpenCV MultiTracker tool. This version is most compatible with ROS Noetic.
 ROITrackerThreadedFrames is the same as FullFrames, but it processes the video in a separate thread to increase speed.
+
+# Compatibility
+This tool has been successfully tested on Linux (Ubuntu) and Windows machines.
+
+For Linux machines, this has been successfully tested on Ubuntu 18.04 and 20.04. For Windows, this has been successfully tested on Windows 10.
+This tool has been successfully tested on ROS versions Melodic and Noetic. For ROS Noetic, the legacy tracker must be used to work with Python 3.
 
 # Installation
 
