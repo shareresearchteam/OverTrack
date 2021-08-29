@@ -1,16 +1,16 @@
 # Overhead Person Camera Tracking System
 This tool is used to track regions-of-interest (ROI) from a single overhead camera by drawing bounding boxes and publish those locations in real time over a ROS network. In some versions of this package, a single arUco marker can be tracked automatically in addition to the bounding boxes.
-s
-ROITrackerFullFrames - This file is the original and simplest version of the tracker.
-ROITrackerFullFrames_aruco - This file incorporates tracking one aruco marker automatically. The marker would typically be placed on the robot.
-ROITrackerFullFrames_aruco_ros - This file can be used with versions of ROS that are older than Noetic. 
-ROITrackerFullFrames_aruco_ros_legacy - This file is used with Python3 only and incorporates the legacy versions of the OpenCV MultiTracker tool. This version is most compatible with ROS Noetic.
+
+ROITrackerFullFrames - This file is the original and simplest version of the tracker.  
+ROITrackerFullFrames_aruco - This file incorporates tracking one aruco marker automatically. The marker would typically be placed on the robot.  
+ROITrackerFullFrames_aruco_ros - This file can be used with versions of ROS that are older than Noetic.  
+ROITrackerFullFrames_aruco_ros_legacy - This file is used with Python3 only and incorporates the legacy versions of the OpenCV MultiTracker tool. This version is most compatible with ROS Noetic.  
 ROITrackerThreadedFrames is the same as FullFrames, but it processes the video in a separate thread to increase speed.
 
 # Compatibility
 This tool has been successfully tested on Linux (Ubuntu) and Windows machines.
 
-For Linux machines, this has been successfully tested on Ubuntu 18.04 and 20.04. For Windows, this has been successfully tested on Windows 10.
+For Linux machines, this has been successfully tested on Ubuntu 18.04 and 20.04. For Windows, this has been successfully tested on Windows 10.  
 This tool has been successfully tested on ROS versions Melodic and Noetic. For ROS Noetic, the legacy tracker must be used to work with Python 3.
 
 # Installation
@@ -35,17 +35,12 @@ openpyxl - pip3 install openpyxl
 
 The following commands are used to operate the tool. 
 
-b - Allows user to draw perimeter box. This is needed to ensure that if a tracked ROI leaves the perimeter, then it will be removed and can be re-drawn when the ROI comes back within the perimeter box.
-
-s - Allows user to draw a box that defines the scale. TODO - does this need some tweaking?
-
-r - Allows user to draw a box over the robot and track it independently of other ROI in the environment.
-
-1-9 - Allows user to draw a box over a ROI and track it with the numerical indicator.
-
-c - Cancels a drawing operation.
-
-q - Quits the program and saves the data. Using control+c will not save the data to a spreadsheet.
+**b** - Allows user to draw perimeter box. This is needed to ensure that if a tracked ROI leaves the perimeter, then it will be removed and can be re-drawn when the ROI comes back within the perimeter box.  
+**s** - Allows user to draw a box that defines the scale. TODO - does this need some tweaking?  
+**r** - Allows user to draw a box over the robot and track it independently of other ROI in the environment.  
+**1-9** - Allows user to draw a box over a ROI and track it with the numerical indicator. The available number of boxes corresponds to the variable numberOfChildrenPlusRobot at the top of each script.  
+**c** - Cancels a drawing operation.  
+**q** - Quits the program and saves the data. Using control+c will not save the data to a spreadsheet.
 
 # Other Notes
 If this tool is being used on Windows, the file path much be specified. This is at the end of each script and an example of the file path listing is shown below.
