@@ -4,7 +4,7 @@
 
 #################################################################################################
 # EXPERIMENT SPECIFIC! (ALTER THIS AS NECESSARY FOR EACH USE)                                   #
-numberOfChildrenPlusRobot = 9 # the number of children in the play group + 1 for the robot     #
+numberOfChildrenPlusRobot = 8 # the number of children in the play group + 1 for the robot     #
 #################################################################################################
 
 # IMPORTS 
@@ -21,14 +21,6 @@ import numpy as np
 import pandas as pd
 import collections
 import time
-#from goprocam import GoProCamera
-#from goprocam import constants
-import threading
-import sys
-import rospy
-import rospkg
-from camera_tracking.msg import FloatArray, Locations
-
 
 # supresses warning about data type comparison between list and np.array 
 import warnings
@@ -44,94 +36,38 @@ def is_empty(any_structure):
     else:
         return True
 
-def lifeguard(gpcam):
-    """Creates a "lifeguard" thread tasked with keeping the camera alive e.g. for streaming.
-    
-    :param gpcam: a GoProCamera.GoPro instance;
-    :return: a deamon thread running gpcam.KeepAlive(). 
-    
-    Written by P. DERIAN 2018-07-04.
-    """
-    t = threading.Thread(target=GoProCamera.GoPro.KeepAlive, args=(gpcam,), daemon=True)
-    t.start()
-    return t
-
 # PRE-LOOP 
 ######################################
 # construct the argument parser and parse the arguments
 ap = argparse.ArgumentParser()
 ap.add_argument("-v", "--video", type=str,
     help="path to input video file")
-ap.add_argument("-t", "--tracker", type=str, default="medianflow",
+ap.add_argument("-t", "--tracker", type=str, default="csrt",
     help="OpenCV object tracker type")
-ap.add_argument("-y", "--type", type=str,
-    default="DICT_5X5_1000",
-    help="type of ArUCo tag to detect")
-args, unknown = ap.parse_known_args()
-args = vars(args)
-
-
-ARUCO_DICT = {
-    "DICT_4X4_50": cv2.aruco.DICT_4X4_50,
-    "DICT_4X4_100": cv2.aruco.DICT_4X4_100,
-    "DICT_4X4_250": cv2.aruco.DICT_4X4_250,
-    "DICT_4X4_1000": cv2.aruco.DICT_4X4_1000,
-    "DICT_5X5_50": cv2.aruco.DICT_5X5_50,
-    "DICT_5X5_100": cv2.aruco.DICT_5X5_100,
-    "DICT_5X5_250": cv2.aruco.DICT_5X5_250,
-    "DICT_5X5_1000": cv2.aruco.DICT_5X5_1000,
-    "DICT_6X6_50": cv2.aruco.DICT_6X6_50,
-    "DICT_6X6_100": cv2.aruco.DICT_6X6_100,
-    "DICT_6X6_250": cv2.aruco.DICT_6X6_250,
-    "DICT_6X6_1000": cv2.aruco.DICT_6X6_1000,
-    "DICT_7X7_50": cv2.aruco.DICT_7X7_50,
-    "DICT_7X7_100": cv2.aruco.DICT_7X7_100,
-    "DICT_7X7_250": cv2.aruco.DICT_7X7_250,
-    "DICT_7X7_1000": cv2.aruco.DICT_7X7_1000,
-}
-# verify that the supplied ArUCo tag exists and is supported by
-# OpenCV
-if ARUCO_DICT.get(args["type"], None) is None:
-    print("[INFO] ArUCo tag of '{}' is not supported".format(
-        args["type"]))
-    sys.exit(0)
+args = vars(ap.parse_args())
 
 # initialize a dictionary that maps strings to their corresponding
 # OpenCV object tracker implementations
 OPENCV_OBJECT_TRACKERS = {
-    "csrt": cv2.TrackerCSRT_create,
-    "kcf": cv2.TrackerKCF_create,
-    "boosting": cv2.TrackerBoosting_create,
-    "mil": cv2.TrackerMIL_create,
-    "tld": cv2.TrackerTLD_create,
-    "medianflow": cv2.TrackerMedianFlow_create,
-    "mosse": cv2.TrackerMOSSE_create
+    "csrt": cv2.legacy.TrackerCSRT_create,
+    "kcf": cv2.legacy.TrackerKCF_create,
+    "boosting": cv2.legacy.TrackerBoosting_create,
+    "mil": cv2.legacy.TrackerMIL_create,
+    "tld": cv2.legacy.TrackerTLD_create,
+    "medianflow": cv2.legacy.TrackerMedianFlow_create,
+    "mosse": cv2.legacy.TrackerMOSSE_create
 }
 
 # if a video path was not supplied, grab the reference to the web cam
 if not args.get("video", False):
     print("[INFO] starting video stream...")
-    # vs = VideoStream(src=0).start()
-    vs = cv2.VideoCapture(0)
-    # go pro settings
-    # gpCam = GoProCamera.GoPro()
-    # gpCam.livestream("start")
-    # vs = cv2.VideoCapture("udp://10.5.5.9:8554", cv2.CAP_FFMPEG)
-    #gpCam.video_settings(res='1080p', fps='30')
-    # not go-pro settings
-    #vs = cv2.VideoCapture('http://192.168.50.76:8080/video')
-    #vs = cv2.VideoCapture('rtsp://admin:cheese@192.168.50.103:8554/1')
-    #vs = FileVideoStream(path='rtsp://admin:cheese@192.168.50.103:8554/1').start(
+    vs = VideoStream(src=0).start()
     time.sleep(1.0)
 
 # otherwise, grab a reference to the video file
 else:
     vs = cv2.VideoCapture(args["video"])
  
-# load the ArUCo dictionary and grab the ArUCo parameters
-print("[INFO] detecting '{}' tags...".format(args["type"]))
-arucoDict = cv2.aruco.Dictionary_get(ARUCO_DICT[args["type"]])
-arucoParams = cv2.aruco.DetectorParameters_create()
 
 # initializing variables 
 frameTrack = [] # tracks frame 
@@ -147,20 +83,13 @@ interactions = pd.DataFrame()
 data = pd.DataFrame()
 velocities = pd.DataFrame()
 
-# ROS config
-pub = rospy.Publisher('locations', FloatArray, queue_size=1)
-rospy.init_node('tracker', anonymous=True)
-rate = rospy.Rate(10) # 10hz
-rosData = Locations()
-rosArray = FloatArray()
-
 # placeholders 
 trackers = [None]*numberOfChildrenPlusRobot # placeholder for trackers                          
 placeholder = ["NR"]*numberOfChildrenPlusRobot # placeholder for centroid spaces 
 
 # fills box_titles 
 for count in range(numberOfChildrenPlusRobot):
-    trackers[count] = cv2.MultiTracker_create()
+    trackers[count] = cv2.legacy.MultiTracker_create()
     # header for the future DataFrame
     # create a list of all box titles with a space for the structure of the DataFrame
     if count == 0:
@@ -191,7 +120,7 @@ pix2ft = 50 # default set based on "Test2.avi" select new factor by pressing "s"
 # VIDEO LOOP 
 ######################################
 # loop over frames from the video stream
-while not rospy.is_shutdown():
+while True:
     key = []
     # frame ID
     #frameId = int(round(vs.get(1))
@@ -205,15 +134,16 @@ while not rospy.is_shutdown():
     # grab the current frame, then handle if we are using a
     # VideoStream or VideoCapture object
     frame = vs.read()
-    frame = frame[1] # if args.get("video", False) else frame
+    frame = frame[1] if args.get("video", False) else frame
     #increment global frame count 
     macroCount = macroCount + 1 
 
     # check to see if we have reached the end of the stream
     if frame is None:
         break
+
     # resize the frame (so we can process it faster)
-    frame = imutils.resize(frame, width=800)
+    frame = imutils.resize(frame, width=1000)
 
     # grab the updated bounding box coordinates (if any) for each
     # object that is being tracked
@@ -225,42 +155,6 @@ while not rospy.is_shutdown():
             boxes[count] = box 
         else: 
             boxes[count] = 'NR'
-        # detect ArUco markers in the input frame
-    (corners, ids, rejected) = cv2.aruco.detectMarkers(frame, arucoDict, parameters=arucoParams)
-    # verify *at least* one ArUco marker was detected
-    if len(corners) > 0:
-        # flatten the ArUco IDs list
-        ids = ids.flatten()
-        # loop over the detected ArUCo corners
-        for (markerCorner, markerID) in zip(corners, ids):
-            # extract the marker corners (which are always returned in
-            # top-left, top-right, bottom-right, and bottom-left order)
-            corners = markerCorner.reshape((4, 2))
-            (topLeft, topRight, bottomRight, bottomLeft) = corners
-            # convert each of the (x, y)-coordinate pairs to integers
-            topRight = (int(topRight[0]), int(topRight[1]))
-            bottomRight = (int(bottomRight[0]), int(bottomRight[1]))
-            bottomLeft = (int(bottomLeft[0]), int(bottomLeft[1]))
-            topLeft = (int(topLeft[0]), int(topLeft[1]))
-            # draw the bounding box of the ArUCo detection
-            cv2.line(frame, topLeft, topRight, (0, 255, 0), 2)
-            cv2.line(frame, topRight, bottomRight, (0, 255, 0), 2)
-            cv2.line(frame, bottomRight, bottomLeft, (0, 255, 0), 2)
-            cv2.line(frame, bottomLeft, topLeft, (0, 255, 0), 2)
-            # compute and draw the center (x, y)-coordinates of the
-            # ArUco marker
-            cX = int((topLeft[0] + bottomRight[0]) / 2.0)
-            cY = int((topLeft[1] + bottomRight[1]) / 2.0)
-            rosData.robot_x = cX
-            rosData.robot_y = cY
-            
-            cv2.circle(frame, (cX, cY), 4, (0, 0, 255), -1)
-            # draw the ArUco marker ID on the frame
-            cv2.putText(frame, str(markerID),
-                    (topLeft[0], topLeft[1] - 15),
-                    cv2.FONT_HERSHEY_SIMPLEX,
-                    0.5, (0, 255, 0), 2)
-            # print("center", cX, cY)
 
     # defining playarea box 
     if is_empty(playarea) == False:
@@ -274,15 +168,15 @@ while not rospy.is_shutdown():
 
         # creating the playarea rectangle on each frame loop 
         cv2.rectangle(frame, startpoint, endpoint, color, thickness)
-        displayText[0] = 'B: Set'
+        displayText[0] = 'Boundary: Engaged'
     else: 
-        displayText[0] = 'B: Not Set'
+        displayText[0] = 'Boundary: Not Engaged'
 
     # checks if scale has been established 
     if is_empty(scale) == False:
-        displayText[1] = 'S: ' + str(np.round(pix2ft,decimals=3))
+        displayText[1] = 'Scale Chosen'
     else: 
-        displayText[1] = 'S: Not Set'
+        displayText[1] = 'Scale Not Chosen'
 
     for count, text in enumerate(displayText):
         if count == 0:
@@ -305,7 +199,7 @@ while not rospy.is_shutdown():
             if box != 'NR':
                 # calculate the centroid of the box for all boxes that are registered 
                 centroid = [box[0]+box[2]/2, box[1]+box[3]/2] # (x + 1/2 width, y + 1/2 height)
-
+                
                 # If all centroids of 'boxes' are in the play area this loop will append their centroids to a
                 # list and draw their rectangles. Otherwise it will remove the listing from boxes that left
                 # the play area, clear the tracker, and reinitialize it to track all but the omitted box 
@@ -316,8 +210,6 @@ while not rospy.is_shutdown():
     
                     # append each centroid to a list 
                     centroids.append(centroid)
-                    rosData.child_x = centroid[0]
-                    rosData.child_y = centroid[1]
                     # x and y are coordinates of top left point 
                     (x, y, w, h) = [int(v) for v in box]
                     # numbering/labeling boxes 
@@ -338,7 +230,7 @@ while not rospy.is_shutdown():
                     del(trackers)
                     trackers = [None]*numberOfChildrenPlusRobot
                     for count_in, box in enumerate(boxes): 
-                        trackers[count_in] = cv2.MultiTracker_create()
+                        trackers[count_in] = cv2.legacy.MultiTracker_create()
                         if box != 'NR': # if the box exists then re-initialize the tracker
                             trackerHolder = OPENCV_OBJECT_TRACKERS[args["tracker"]]()
                             box = tuple(box)
@@ -353,6 +245,7 @@ while not rospy.is_shutdown():
         # intPlaceholder is a list that is overwritten by interactions this is 
         # used to easily fill instance since DataFrames can be finnicky
         intPlaceholder = ["NR"]*numberOfChildrenPlusRobot
+
         # loop to calculate the distances between all centroids 
         if len(centroids) >= 2:
             # outer loop cycles through centroids, inner loop compares on centroid to the rest
@@ -416,7 +309,7 @@ while not rospy.is_shutdown():
             frameTrack = True
             # initializing column headers and filling row with Nones
             data = pd.DataFrame([placeholder], index = [time_track], columns = [box_title])
-            # velocities = pd.DataFrame([placeholder], index = [time_track], columns = [box_title])
+            velocities = pd.DataFrame([placeholder], index = [time_track], columns = [box_title])
             # replace placeholders with centroid coordinates 
             data.iloc[0,0:len(centroids)] = centroids # first 0 index serves to constrain data replacement
 
@@ -438,11 +331,11 @@ while not rospy.is_shutdown():
                     velocity[count] = 'NR'
             velocityInstance = pd.DataFrame([velocity], index = [time_track], columns = [box_title])
             velocities = pd.concat([velocities, velocityInstance])
-    rosArray.FloatArray.append(rosData)
-    pub.publish(rosArray) # publish robot and box centers to ROS                
+                    
     # show the output frame
     cv2.imshow("Frame", frame)
-    key = cv2.waitKey(1) & 0xFF
+    # time.sleep(10)
+    key = cv2.waitKey(-1) & 0xFF
     # save last time for velocity calc
     lastTime = time_track
 
@@ -454,7 +347,7 @@ while not rospy.is_shutdown():
             ord("9"): 9, ord("0"): 10, ord("r"): 0}
     if key in keys: 
         # if already tracking subject, then delete and reinitialize
-        # this is for when the subject is occluded 
+        # this is for when the subject is occuled 
         number = keys[key]
         try:
             if trackers[number].getObjects() != ():
@@ -478,7 +371,7 @@ while not rospy.is_shutdown():
     # if 'b' key is pressed the bounding box of the play area will be selected
     elif key == ord('b') or key == ord('B'):
         playarea = cv2.selectROI("Frame", frame, fromCenter=False,
-            showCrosshair=True)     
+            showCrosshair=True)		
     # if "s" is pressed define scale 
     elif key == ord('s') or key == ord('S'):
         scale = cv2.selectROI("Frame", frame, fromCenter=False,
@@ -505,7 +398,6 @@ else:
 # close all windows
 cv2.destroyAllWindows()
 
-# exporting data to excel sheet 
 # exporting data to excel sheet 
 data.to_excel('positions.xlsx', index = True, header=["Centroid"])
 interactions.to_excel('interactions.xlsx', index = True, header=["Centroid"])

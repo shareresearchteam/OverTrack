@@ -349,36 +349,40 @@ while True:
         # if already tracking subject, then delete and reinitialize
         # this is for when the subject is occuled 
         number = keys[key]
-        if trackers[number].getObjects() != ():
-            del(trackers[number])
-            trackers[number] = cv2.MultiTracker_create()
+        try:
+            if trackers[number].getObjects() != ():
+                del(trackers[number])
+                trackers[number] = cv2.MultiTracker_create()
 
-        # select the bounding box of the object we want to track (make
-        # sure you press ENTER or SPACE after selecting the ROI)
-        box = cv2.selectROI("Frame", frame, fromCenter=False,
-            showCrosshair=True)            
+            # select the bounding box of the object we want to track (make
+            # sure you press ENTER or SPACE after selecting the ROI)
+            box = cv2.selectROI("Frame", frame, fromCenter=False,
+                showCrosshair=True)            
 
-        # create a new object tracker for the bounding box and add it
-        # to our multi-object tracker
-        trackerHolder = OPENCV_OBJECT_TRACKERS[args["tracker"]]()
-        trackers[number].add(trackerHolder, frame, box)
+            # create a new object tracker for the bounding box and add it
+            # to our multi-object tracker
+            trackerHolder = OPENCV_OBJECT_TRACKERS[args["tracker"]]()
+            trackers[number].add(trackerHolder, frame, box)
+        
+        # ignore command if someone enters an invalid key
+        except IndexError:
+            pass
 
     # if 'b' key is pressed the bounding box of the play area will be selected
-    elif key == ord('b'):
+    elif key == ord('b') or key == ord('B'):
         playarea = cv2.selectROI("Frame", frame, fromCenter=False,
-            showCrosshair=True)		
-    
-    elif key == ord('s'):
+            showCrosshair=True)     
+    # if "s" is pressed define scale 
+    elif key == ord('s') or key == ord('S'):
         scale = cv2.selectROI("Frame", frame, fromCenter=False,
             showCrosshair=True)  
         
         squareDiagonal = (2**2+2**2)**(1/2) # assumes squares are 2x2 
-        selectedDiagonal = (scale[2]**2+scale[3]**2)**(1/2)
-        # length of square diagonal (feet) is divided by the selected diagonal (pixels)
-        pix2ft = squareDiagonal/selectedDiagonal # multiply by distance to convert into ft
+        selectedDiagonal = (scale[2]**2+scale[3]**2)**(1/2) # scale[2] is width scale[3] is height         # length of square diagonal (feet) is divided by the selected diagonal (pixels)
+        pix2ft = squareDiagonal/selectedDiagonal # multiply by a distance to convert into ft
          
     # if the `q` key was pressed, break from the loop
-    elif key == ord("q"):
+    elif key == ord("q") or key == ord('Q'):
         break
 
 # CLEAN UP & EXPORT 
