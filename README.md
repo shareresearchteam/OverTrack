@@ -2,7 +2,7 @@
 This tool is used to track regions-of-interest (ROI) from a single overhead camera by drawing bounding boxes and publish those locations in real time over a Robot-Operating-System (ROS) network. In some versions of this package, a single arUco marker can be tracked automatically in addition to the bounding boxes.
 
 **ROITrackerFullFrames** - This file is the original and simplest version of the tracker.  
-**ROITrackerFullFrames_legacy** - This file is the same as the original tracker but incorporates the legacy versions of the OpenCV MultiTracker tool for use with certain versions of Python3 and OpenCV.
+**ROITrackerFullFrames_legacy** - This file is the same as the original tracker but incorporates the legacy versions of the OpenCV MultiTracker tool for use with certain versions of Python3 and OpenCV.  
 **ROITrackerFullFrames_aruco** - This file incorporates tracking one aruco marker automatically. The marker would typically be placed on the robot.  
 **ROITrackerFullFrames_aruco_ros** - This file can be used with versions of ROS that are older than Noetic.  
 **ROITrackerFullFrames_aruco_ros_legacy** - This file is the same as the ROS file but incorporates the legacy versions of the OpenCV MultiTracker tool for use with certain versions of Python3 and OpenCV. This version is most compatible with ROS Noetic.  
