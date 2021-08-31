@@ -33,7 +33,7 @@ openpyxl - pip3 install openpyxl
 
 # Usage
 
-The following commands are used to operate the tool. 
+The following commands are used to operate the tool. You must create a boundary first before the trackers will be visualized. They will still be tracked without a boundary but will not display.
 
 **b** - Allows user to draw perimeter box. This is needed to ensure that if a tracked ROI leaves the perimeter, then it will be removed and can be re-drawn when the ROI comes back within the perimeter box.  
 **s** - Allows user to draw a box that defines the scale. TODO - does this need some tweaking?  
