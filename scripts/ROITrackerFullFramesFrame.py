@@ -49,13 +49,13 @@ args = vars(ap.parse_args())
 # initialize a dictionary that maps strings to their corresponding
 # OpenCV object tracker implementations
 OPENCV_OBJECT_TRACKERS = {
-    "csrt": cv2.TrackerCSRT_create,
-    "kcf": cv2.TrackerKCF_create,
-    "boosting": cv2.TrackerBoosting_create,
-    "mil": cv2.TrackerMIL_create,
-    "tld": cv2.TrackerTLD_create,
-    "medianflow": cv2.TrackerMedianFlow_create,
-    "mosse": cv2.TrackerMOSSE_create
+    "csrt": cv2.legacy.TrackerCSRT_create,
+    "kcf": cv2.legacy.TrackerKCF_create,
+    "boosting": cv2.legacy.TrackerBoosting_create,
+    "mil": cv2.legacy.TrackerMIL_create,
+    "tld": cv2.legacy.TrackerTLD_create,
+    "medianflow": cv2.legacy.TrackerMedianFlow_create,
+    "mosse": cv2.legacy.TrackerMOSSE_create
 }
 
 # if a video path was not supplied, grab the reference to the web cam
@@ -89,7 +89,7 @@ placeholder = ["NR"]*numberOfChildrenPlusRobot # placeholder for centroid spaces
 
 # fills box_titles 
 for count in range(numberOfChildrenPlusRobot):
-    trackers[count] = cv2.MultiTracker_create()
+    trackers[count] = cv2.legacy.MultiTracker_create()
     # header for the future DataFrame
     # create a list of all box titles with a space for the structure of the DataFrame
     if count == 0:
@@ -230,7 +230,7 @@ while True:
                     del(trackers)
                     trackers = [None]*numberOfChildrenPlusRobot
                     for count_in, box in enumerate(boxes): 
-                        trackers[count_in] = cv2.MultiTracker_create()
+                        trackers[count_in] = cv2.legacy.MultiTracker_create()
                         if box != 'NR': # if the box exists then re-initialize the tracker
                             trackerHolder = OPENCV_OBJECT_TRACKERS[args["tracker"]]()
                             box = tuple(box)
@@ -349,10 +349,10 @@ while True:
         # if already tracking subject, then delete and reinitialize
         # this is for when the subject is occuled 
         number = keys[key]
+        print(trackers)
         try:
             if trackers[number].getObjects() != ():
-                del(trackers[number])
-                trackers[number] = cv2.MultiTracker_create()
+                trackers[number] = cv2.legacy.MultiTracker_create()
 
             # select the bounding box of the object we want to track (make
             # sure you press ENTER or SPACE after selecting the ROI)

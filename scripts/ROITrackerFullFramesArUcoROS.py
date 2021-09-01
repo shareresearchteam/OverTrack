@@ -458,7 +458,6 @@ while not rospy.is_shutdown():
         number = keys[key]
         try:
             if trackers[number].getObjects() != ():
-                del(trackers[number])
                 trackers[number] = cv2.MultiTracker_create()
 
             # select the bounding box of the object we want to track (make
