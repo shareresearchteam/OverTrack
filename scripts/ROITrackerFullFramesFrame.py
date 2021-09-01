@@ -335,7 +335,7 @@ while True:
     # show the output frame
     cv2.imshow("Frame", frame)
     # time.sleep(10)
-    key = cv2.waitKey(1) & 0xFF
+    key = cv2.waitKey(-1) & 0xFF
     # save last time for velocity calc
     lastTime = time_track
 
