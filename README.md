@@ -6,7 +6,8 @@ This tool is used to track regions-of-interest (ROI) from a single overhead came
 **ROITrackerFullFramesArUco** - This file incorporates tracking one aruco marker automatically. The marker would typically be placed on the robot.  
 **ROITrackerFullFramesArUcoROS** - This file can be used with versions of ROS that are older than Noetic.  
 **ROITrackerFullFramesArUcoROSLegacy** - This file is the same as the ROS file but incorporates the legacy versions of the OpenCV MultiTracker tool for use with certain versions of Python3 and OpenCV. This version is most compatible with ROS Noetic.  
-**ROITrackerThreadedFrames** is the same as FullFrames, but it processes the video in a separate thread to increase speed.
+**ROITrackerThreadedFrames** is the same as FullFrames, but it processes the video in a separate thread to increase speed. This has not been tested with ROS
+**ROITrackerFullFramesFrame** - This file runs the video frame by frame if more accuracy is needed and time is not a factor.
 
 # Compatibility
 This tool has been successfully tested on Linux (Ubuntu) and Windows machines.
