@@ -174,7 +174,7 @@ while True:
 
     # checks if scale has been established 
     if is_empty(scale) == False:
-        displayText[1] = 'Scale Chosen'
+        displayText[1] = 'Scale: ' + str(round(pix2ft,3))
     else: 
         displayText[1] = 'Scale Not Chosen'
 
@@ -363,9 +363,17 @@ while True:
             trackerHolder = OPENCV_OBJECT_TRACKERS[args["tracker"]]()
             trackers[number].add(trackerHolder, frame, box)
         
-        # ignore command if someone enters an invalid key
+        # ignore command if user enters an invalid key
+        # this can occur because the number selected is out of range for the variable numberOfChildrenPlusRobot
         except IndexError:
+            print("An invalid key was selected. Please try again.")
             pass
+
+        # ignore error if user forgets to select a region after pausing to add a tracker
+        except cv2.error:
+            print("A region was not selected. Please try again.")
+            pass
+
 
     # if 'b' key is pressed the bounding box of the play area will be selected
     elif key == ord('b') or key == ord('B'):

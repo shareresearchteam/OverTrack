@@ -470,9 +470,17 @@ while not rospy.is_shutdown():
             trackerHolder = OPENCV_OBJECT_TRACKERS[args["tracker"]]()
             trackers[number].add(trackerHolder, frame, box)
         
-        # ignore command if someone enters an invalid key
+        # ignore command if user enters an invalid key
+        # this can occur because the number selected is out of range for the variable numberOfChildrenPlusRobot
         except IndexError:
+            print("An invalid key was selected. Please try again.")
             pass
+
+        # ignore error if user forgets to select a region after pausing to add a tracker
+        except cv2.error:
+            print("A region was not selected. Please try again.")
+            pass
+
 
     # if 'b' key is pressed the bounding box of the play area will be selected
     elif key == ord('b') or key == ord('B'):
