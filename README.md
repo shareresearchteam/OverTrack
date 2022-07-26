@@ -1,4 +1,4 @@
-# Overhead Person Camera Tracking System
+# OverTrack: Semi-Automatic Overhead Region-of-Interest Tracker
 This tool is used to track regions-of-interest (ROI) from a single overhead camera by drawing bounding boxes and publish those locations in real time over a Robot-Operating-System (ROS) network. In some versions of this package, a single arUco marker can be tracked automatically in addition to the bounding boxes.
 
 **ROITrackerFullFrames** - This file is the original and simplest version of the tracker.  
