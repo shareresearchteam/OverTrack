@@ -33,7 +33,7 @@ openpyxl - pip3 install openpyxl
 
 # Windows Installation
 These instructions do not include setting up ROS with Windows so only the non-ROS scripts will work correctly. Please see http://wiki.ros.org/Installation/Windows for further instructions on configuring ROS with Windows.
-```
+
 1. Install Windows Terminal if available - https://docs.microsoft.com/en-us/windows/terminal/install
 2. Install Python if not already installed - https://www.python.org/downloads/windows/
 3. Install dependencies listed above
