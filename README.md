@@ -1,5 +1,5 @@
 # OverTrack
-This tool is used to track regions-of-interest (ROI) from a single overhead camera by drawing bounding boxes and publishing those locations in real time using a Robot-Operating-System (ROS) network. In some versions of this package, a single arUco marker can be tracked automatically in addition to the bounding boxes.
+This tool is used to track regions-of-interest (ROI) from a single overhead camera by drawing bounding boxes and publishing those locations in real time using a Robot-Operating-System (ROS) network. The labeled arUco tag scripts enable tracking of a single arUco marker in addition to the bounding boxes.
 
 **ROITrackerFullFrames** - This file will run the tracker with either a video or in real-time with no ROS setup.
 **ROITrackerFullFramesLegacy** - This file is the same as the original tracker but incorporates the legacy versions of the OpenCV MultiTracker tool for use with certain versions of Python3 and OpenCV.  
