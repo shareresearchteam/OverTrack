@@ -1,21 +1,18 @@
 # OverTrack
-This tool is used to track regions-of-interest (ROI) from a single overhead camera by drawing bounding boxes and publish those locations in real time over a Robot-Operating-System (ROS) network. In some versions of this package, a single arUco marker can be tracked automatically in addition to the bounding boxes.
+This tool is used to track regions-of-interest (ROI) from a single overhead camera by drawing bounding boxes and publishing those locations in real time using a Robot-Operating-System (ROS) network. In some versions of this package, a single arUco marker can be tracked automatically in addition to the bounding boxes.
 
-**ROITrackerFullFrames** - This file is the original and simplest version of the tracker.  
+**ROITrackerFullFrames** - This file will run the tracker with either a video or in real-time with no ROS setup.
 **ROITrackerFullFramesLegacy** - This file is the same as the original tracker but incorporates the legacy versions of the OpenCV MultiTracker tool for use with certain versions of Python3 and OpenCV.  
-**ROITrackerFullFramesArUco** - This file incorporates tracking one aruco marker automatically. The marker would typically be placed on the robot.  
 **ROITrackerFullFramesArUcoROS** - This file can be used with versions of ROS that are older than Noetic.  
 **ROITrackerFullFramesArUcoROSLegacy** - This file is the same as the ROS file but incorporates the legacy versions of the OpenCV MultiTracker tool for use with certain versions of Python3 and OpenCV. This version is most compatible with ROS Noetic.  
-**ROITrackerThreadedFrames** is the same as FullFrames, but it processes the video in a separate thread to increase speed. This has not been tested with ROS
-**ROITrackerFullFramesFrame** - This file runs the video frame by frame if more accuracy is needed and time is not a factor.
 
 # Compatibility
-This tool has been successfully tested on Linux (Ubuntu) and Windows machines.
+This tool has been successfully tested on Linux (Ubuntu), Mac OS X Maverick, and Windows 10 and 11 machines.
 
-For Linux machines, this has been successfully tested on Ubuntu 18.04 and 20.04. For Windows, this has been successfully tested on Windows 10.  
-This tool has been successfully tested on ROS versions Melodic and Noetic. For ROS Noetic, the legacy tracker must be used to work with Python 3.
+For Linux machines, this has been successfully tested on Ubuntu 16.04, 18.04, and 20.04.  
+This tool has been successfully tested on ROS versions Kinetic, Melodic, and Noetic. For ROS Noetic, the legacy tracker must be used to work with Python3.
 
-# Installation
+# Linux Installation
 
 1. Install Dependencies:
 ```
@@ -34,6 +31,19 @@ openpyxl - pip3 install openpyxl
 7. Add the catkin workspace to your ROS environment: ```source ~/catkin_ws/devel/setup.bash```
 8. Run the launch file depending on your version of ROS: ```roslaunch camera_tracking camera_tracking.launch```
 
+# Windows Installation
+These instructions do not include setting up ROS with Windows so only the non-ROS scripts will work correctly. Please see http://wiki.ros.org/Installation/Windows for further instructions on configuring ROS with Windows.
+```
+1. Install Windows Terminal if available - https://docs.microsoft.com/en-us/windows/terminal/install
+2. Install Python if not already installed - https://www.python.org/downloads/windows/
+3. Install dependencies listed above
+4. Clone repository using either Terminal or web GUI.
+6. Navigate to the cloned repository in Terminal and run script of choice.
+
+# Mac Installation
+Installation on Mac follows Linux instructions. The XCode Command Line Tools package or Homebrew may need to be installed:
+https://www.freecodecamp.org/news/install-xcode-command-line-tools/
+
 # Usage
 
 The following commands are used to operate the tool. You must create a boundary first before the trackers will be visualized. They will still be tracked without a boundary but will not display.
@@ -46,7 +56,7 @@ The following commands are used to operate the tool. You must create a boundary 
 **q** - Quits the program and saves the data. Using control+c will not save the data to a spreadsheet.
 
 # Other Notes
-If this tool is being used on Windows, the file path much be specified. This is at the end of each script and an example of the file path listing is shown below.
+If this tool is being used on Windows without Terminal, the file path much be specified. This is at the end of each script and an example of the file path listing is shown below.
 ```
 data.to_excel(r'C:\Users\Connor\Desktop\OSU_Lab\multi-object-tracking\Tracking Data\data.xlsx', index = True, header=["Centroid"])
 interactions.to_excel(r'C:\Users\Connor\Desktop\OSU_Lab\multi-object-tracking\Tracking Data\interactions.xlsx', index = True, header=["Centroid"])
