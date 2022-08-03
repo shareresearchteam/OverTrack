@@ -77,8 +77,7 @@ Ameer Helmi, Connor Phillips, Fernando Castillo, Christine Zhan, Samuel W. Logan
 Child-Robot Interaction" Under Review for Inclusion in the International Conference on Social Robotics (ICSR), 2022. 
 ```
 @article{helmi2022overtrack,
-  title={OverTrack: Overhead Camera Tracking Tool for
-Child-Robot Interaction},
+  title={OverTrack: Overhead Camera Tracking Tool for Child-Robot Interaction},
   author={Helmi, Ameer and Phillips, Connor and Castillo, Fernando and Zhan, Christine and Logan, Samuel W. and Fitter, Naomi T.},
   howpublished={Under Review for Inclusion in the International Conference on Social Robotics (ICSR)},
   pages={},
