@@ -75,7 +75,7 @@ Please cite this paper in your publications if OverTrack helps your research.
 
 Ameer Helmi, Connor Phillips, Fernando Castillo, Christine Zhan, Samuel W. Logan, and Naomi T. Fitter, "OverTrack: Overhead Camera Tracking Tool for
 Child-Robot Interaction" Under Review for Inclusion in the International Conference on Social Robotics (ICSR), 2022. 
-
+```
 @article{helmi2022overtrack,
   title={OverTrack: Overhead Camera Tracking Tool for
 Child-Robot Interaction},
@@ -84,3 +84,4 @@ Child-Robot Interaction},
   pages={},
   year={2022},
 }
+```
