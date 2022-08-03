@@ -69,3 +69,18 @@ Example command for running on a video file (put video file in a folder called v
 ```python3 ROITrackerFullFrames.py --video videos/video_name.video_type --tracker csrt```
 
 If using the aruco file, add parameter --type (define aruco dictionary type) (default is DICT_5X5_1000)
+
+# Citation
+Please cite this papers in your publications if OverTrack helps your research.
+
+Ameer Helmi, Connor Phillips, Fernando Castillo, Christine Zhan, Samuel W. Logan, and Naomi T. Fitter, "OverTrack: Overhead Camera Tracking Tool for
+Child-Robot Interaction" Under Review for Inclusion in the International Conference on Social Robotics (ICSR), 2022. 
+
+@article{helmi2022overtrack,
+  title={OverTrack: Overhead Camera Tracking Tool for
+Child-Robot Interaction},
+  author={Helmi, Ameer and Phillips, Connor and Castillo, Fernando and Zhan, Christine and Logan, Samuel W. and Fitter, Naomi T.},
+  howpublished={Under Review for Inclusion in the International Conference on Social Robotics (ICSR)},
+  pages={},
+  year={2022},
+}
