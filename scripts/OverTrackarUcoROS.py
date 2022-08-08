@@ -1,9 +1,10 @@
+#!/usr/bin/env python3
 # USAGE
 # python3 ROITrackerFullFrames.py --video videos/Test2.avi --tracker csrt
 
 #################################################################################################
 # EXPERIMENT SPECIFIC! (ALTER THIS AS NECESSARY FOR EACH USE)                                   #
-numberOfChildrenPlusRobot = 9 # the number of children in the play group + 1 for the robot     #
+numberOfChildrenPlusRobot = 3 # the number of children in the play group + 1 for the robot     #
 #################################################################################################
 
 # IMPORTS 
@@ -20,19 +21,21 @@ import numpy as np
 import pandas as pd
 import collections
 import time
-from goprocam import GoProCamera
-from goprocam import constants
 import threading
 import sys
 import rospy
-
+import rospkg
+from overtrack.msg import FloatArray, Locations
+#from goprocam import GoProCamera
+#from goprocam import constants
 
 # supresses warning about data type comparison between list and np.array 
 import warnings
 import numpy as np
 warnings.simplefilter(action='ignore', category=FutureWarning)
+warnings.simplefilter(action='ignore', category=DeprecationWarning)
 
-# DEFINTIONS 
+# DEFINITIONS 
 ######################################
 # function to check if something is empty 
 def is_empty(any_structure):
@@ -62,35 +65,36 @@ ap.add_argument("-v", "--video", type=str,
 ap.add_argument("-t", "--tracker", type=str, default="medianflow",
     help="OpenCV object tracker type")
 ap.add_argument("-y", "--type", type=str,
-	default="DICT_5X5_1000",
-	help="type of ArUCo tag to detect")
-args = vars(ap.parse_args())
+    default="DICT_5X5_1000",
+    help="type of ArUCo tag to detect")
+args, unknown = ap.parse_known_args()
+args = vars(args)
 
 
 ARUCO_DICT = {
-	"DICT_4X4_50": cv2.aruco.DICT_4X4_50,
-	"DICT_4X4_100": cv2.aruco.DICT_4X4_100,
-	"DICT_4X4_250": cv2.aruco.DICT_4X4_250,
-	"DICT_4X4_1000": cv2.aruco.DICT_4X4_1000,
-	"DICT_5X5_50": cv2.aruco.DICT_5X5_50,
-	"DICT_5X5_100": cv2.aruco.DICT_5X5_100,
-	"DICT_5X5_250": cv2.aruco.DICT_5X5_250,
-	"DICT_5X5_1000": cv2.aruco.DICT_5X5_1000,
-	"DICT_6X6_50": cv2.aruco.DICT_6X6_50,
-	"DICT_6X6_100": cv2.aruco.DICT_6X6_100,
-	"DICT_6X6_250": cv2.aruco.DICT_6X6_250,
-	"DICT_6X6_1000": cv2.aruco.DICT_6X6_1000,
-	"DICT_7X7_50": cv2.aruco.DICT_7X7_50,
-	"DICT_7X7_100": cv2.aruco.DICT_7X7_100,
-	"DICT_7X7_250": cv2.aruco.DICT_7X7_250,
-	"DICT_7X7_1000": cv2.aruco.DICT_7X7_1000,
+    "DICT_4X4_50": cv2.aruco.DICT_4X4_50,
+    "DICT_4X4_100": cv2.aruco.DICT_4X4_100,
+    "DICT_4X4_250": cv2.aruco.DICT_4X4_250,
+    "DICT_4X4_1000": cv2.aruco.DICT_4X4_1000,
+    "DICT_5X5_50": cv2.aruco.DICT_5X5_50,
+    "DICT_5X5_100": cv2.aruco.DICT_5X5_100,
+    "DICT_5X5_250": cv2.aruco.DICT_5X5_250,
+    "DICT_5X5_1000": cv2.aruco.DICT_5X5_1000,
+    "DICT_6X6_50": cv2.aruco.DICT_6X6_50,
+    "DICT_6X6_100": cv2.aruco.DICT_6X6_100,
+    "DICT_6X6_250": cv2.aruco.DICT_6X6_250,
+    "DICT_6X6_1000": cv2.aruco.DICT_6X6_1000,
+    "DICT_7X7_50": cv2.aruco.DICT_7X7_50,
+    "DICT_7X7_100": cv2.aruco.DICT_7X7_100,
+    "DICT_7X7_250": cv2.aruco.DICT_7X7_250,
+    "DICT_7X7_1000": cv2.aruco.DICT_7X7_1000,
 }
 # verify that the supplied ArUCo tag exists and is supported by
 # OpenCV
 if ARUCO_DICT.get(args["type"], None) is None:
-	print("[INFO] ArUCo tag of '{}' is not supported".format(
-		args["type"]))
-	sys.exit(0)
+    print("[INFO] ArUCo tag of '{}' is not supported".format(
+        args["type"]))
+    sys.exit(0)
 
 # initialize a dictionary that maps strings to their corresponding
 # OpenCV object tracker implementations
@@ -107,15 +111,8 @@ OPENCV_OBJECT_TRACKERS = {
 # if a video path was not supplied, grab the reference to the web cam
 if not args.get("video", False):
     print("[INFO] starting video stream...")
-    gpCam = GoProCamera.GoPro()
-    gpCam.livestream("start")
-    vs = cv2.VideoCapture("udp://10.5.5.9:8554", cv2.CAP_FFMPEG)
-
-    ## other camera settings
-    #gpCam.video_settings(res='1080p', fps='30')
-    #vs = cv2.VideoCapture('http://192.168.50.76:8080/video')
-    #vs = cv2.VideoCapture('rtsp://admin:cheese@192.168.50.103:8554/1')
-    #vs = FileVideoStream(path='rtsp://admin:cheese@192.168.50.103:8554/1').start(
+    # vs = VideoStream(src=0).start()
+    vs = cv2.VideoCapture(0)
     time.sleep(1.0)
 
 # otherwise, grab a reference to the video file
@@ -126,6 +123,7 @@ else:
 print("[INFO] detecting '{}' tags...".format(args["type"]))
 arucoDict = cv2.aruco.Dictionary_get(ARUCO_DICT[args["type"]])
 arucoParams = cv2.aruco.DetectorParameters_create()
+
 # initializing variables 
 frameTrack = [] # tracks frame 
 box = [] # iterates through each box in boxes 
@@ -139,6 +137,13 @@ displayText = [None]*2 # holds text displayed on image
 interactions = pd.DataFrame()
 data = pd.DataFrame()
 velocities = pd.DataFrame()
+
+# ROS config
+pub = rospy.Publisher('locations', FloatArray, queue_size=1)
+rospy.init_node('tracker', anonymous=True)
+rate = rospy.Rate(10) # 10hz
+rosData = Locations()
+rosArray = FloatArray()
 
 # placeholders 
 trackers = [None]*numberOfChildrenPlusRobot # placeholder for trackers                          
@@ -177,7 +182,7 @@ pix2ft = 50 # default set based on "Test2.avi" select new factor by pressing "s"
 # VIDEO LOOP 
 ######################################
 # loop over frames from the video stream
-while True:
+while not rospy.is_shutdown():
     key = []
     # frame ID
     #frameId = int(round(vs.get(1))
@@ -211,7 +216,7 @@ while True:
             boxes[count] = box 
         else: 
             boxes[count] = 'NR'
-    	# detect ArUco markers in the input frame
+        # detect ArUco markers in the input frame
     (corners, ids, rejected) = cv2.aruco.detectMarkers(frame, arucoDict, parameters=arucoParams)
     # verify *at least* one ArUco marker was detected
     if len(corners) > 0:
@@ -237,7 +242,8 @@ while True:
             # ArUco marker
             cX = int((topLeft[0] + bottomRight[0]) / 2.0)
             cY = int((topLeft[1] + bottomRight[1]) / 2.0)
-            
+            rosData.robot_x = cX
+            rosData.robot_y = cY
             
             cv2.circle(frame, (cX, cY), 4, (0, 0, 255), -1)
             # draw the ArUco marker ID on the frame
@@ -290,7 +296,7 @@ while True:
             if box != 'NR':
                 # calculate the centroid of the box for all boxes that are registered 
                 centroid = [box[0]+box[2]/2, box[1]+box[3]/2] # (x + 1/2 width, y + 1/2 height)
-                
+
                 # If all centroids of 'boxes' are in the play area this loop will append their centroids to a
                 # list and draw their rectangles. Otherwise it will remove the listing from boxes that left
                 # the play area, clear the tracker, and reinitialize it to track all but the omitted box 
@@ -301,6 +307,8 @@ while True:
     
                     # append each centroid to a list 
                     centroids.append(centroid)
+                    rosData.child_x = centroid[0]
+                    rosData.child_y = centroid[1]
                     # x and y are coordinates of top left point 
                     (x, y, w, h) = [int(v) for v in box]
                     # numbering/labeling boxes 
@@ -404,24 +412,30 @@ while True:
             data.iloc[0,0:len(centroids)] = centroids # first 0 index serves to constrain data replacement
 
         else:
-            # initalize new row with placeholder values 
-            addition = pd.DataFrame([centroids], index = [time_track], columns = [box_title])
-            # concatenate to the dataframe
-            data = pd.concat([data, addition])
-            # indexing position from last frame 
-            lastPlace = data.loc[lastTime,:]  
-            # indexing position from current frame
-            currentPlace = addition.loc[time_track,:]
-            # velocity calculation
-            velocity = [None]*numberOfChildrenPlusRobot
-            for count in range(numberOfChildrenPlusRobot):
-                if currentPlace[count] != 'NR' and lastPlace[count] != 'NR':
-                    velocity[count] = (np.array(currentPlace[count])-np.array(lastPlace[count]))*pix2ft/(time_track-lastTime)
-                elif currentPlace[count] == 'NR' or lastPlace[count] == 'NR':
-                    velocity[count] = 'NR'
-            velocityInstance = pd.DataFrame([velocity], index = [time_track], columns = [box_title])
-            velocities = pd.concat([velocities, velocityInstance])
-                    
+            if time_track == 0:
+                pass
+            else:
+                # initalize new row with placeholder values 
+                addition = pd.DataFrame([centroids], index = [time_track], columns = [box_title])
+                # concatenate to the dataframe
+                data = pd.concat([data, addition])
+                # indexing position from last frame 
+                lastPlace = data.loc[lastTime,:]  
+                # indexing position from current frame
+                currentPlace = addition.loc[time_track,:]
+                # velocity calculation
+                velocity = [None]*numberOfChildrenPlusRobot
+                for count in range(numberOfChildrenPlusRobot):
+                    if currentPlace[count] != 'NR' and lastPlace[count] != 'NR':
+                        velocity[count] = (np.array(currentPlace[count])-np.array(lastPlace[count]))*pix2ft/(time_track-lastTime)
+                    elif currentPlace[count] == 'NR' or lastPlace[count] == 'NR':
+                        velocity[count] = 'NR'
+                velocityInstance = pd.DataFrame([velocity], index = [time_track], columns = [box_title])
+                velocities = pd.concat([velocities, velocityInstance])
+
+    # publish robot and box centers to ROS
+    rosArray.FloatArray.append(rosData)
+    pub.publish(rosArray)              
     # show the output frame
     cv2.imshow("Frame", frame)
     key = cv2.waitKey(1) & 0xFF
@@ -463,7 +477,6 @@ while True:
             print("A region was not selected. Please try again.")
             pass
 
-
     # if 'b' key is pressed the bounding box of the play area will be selected
     elif key == ord('b') or key == ord('B'):
         playarea = cv2.selectROI("Frame", frame, fromCenter=False,
@@ -495,5 +508,7 @@ else:
 cv2.destroyAllWindows()
 
 # exporting data to excel sheet 
-data.to_excel('new.xlsx', index = True, header=["Centroid"])
-# velocities.to_excel('vels.xlsx', index = True, header=["Centroid"])
+# exporting data to excel sheet 
+data.to_excel('positions.xlsx', index = True, header=["Centroid"])
+interactions.to_excel('interactions.xlsx', index = True, header=["Centroid"])
+velocities.to_excel('velocities.xlsx', index = True, header=["Centroid"])

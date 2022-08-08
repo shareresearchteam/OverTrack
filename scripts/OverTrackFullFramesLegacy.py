@@ -26,8 +26,9 @@ import time
 import warnings
 import numpy as np
 warnings.simplefilter(action='ignore', category=FutureWarning)
+warnings.simplefilter(action='ignore', category=DeprecationWarning)
 
-# DEFINTIONS 
+# DEFINITIONS 
 ######################################
 # function to check if something is empty 
 def is_empty(any_structure):
@@ -90,7 +91,6 @@ placeholder = ["NR"]*numberOfChildrenPlusRobot # placeholder for centroid spaces
 # fills box_titles 
 for count in range(numberOfChildrenPlusRobot):
     trackers[count] = cv2.legacy.MultiTracker_create()
-    # header for the future DataFrame
     # create a list of all box titles with a space for the structure of the DataFrame
     if count == 0:
         box_title.append("Robot")
@@ -122,10 +122,7 @@ pix2ft = 50 # default set based on "Test2.avi" select new factor by pressing "s"
 # loop over frames from the video stream
 while True:
     key = []
-    # frame ID
-    #frameId = int(round(vs.get(1))
-    #    if frameID % multiplier == 0:
-    #    if args.get("video", True):
+
     if not args.get("video", False):
         time_track = time.time() 
     else:
@@ -314,28 +311,31 @@ while True:
             data.iloc[0,0:len(centroids)] = centroids # first 0 index serves to constrain data replacement
 
         else:
-            # initalize new row with placeholder values 
-            addition = pd.DataFrame([centroids], index = [time_track], columns = [box_title])
-            # concatenate to the dataframe
-            data = pd.concat([data, addition])
-            # indexing position from last frame 
-            lastPlace = data.loc[lastTime,:]  
-            # indexing position from current frame
-            currentPlace = addition.loc[time_track,:]
-            # velocity calculation
-            velocity = [None]*numberOfChildrenPlusRobot
-            for count in range(numberOfChildrenPlusRobot):
-                if currentPlace[count] != 'NR' and lastPlace[count] != 'NR':
-                    velocity[count] = (np.array(currentPlace[count])-np.array(lastPlace[count]))*pix2ft/(time_track-lastTime)
-                elif currentPlace[count] == 'NR' or lastPlace[count] == 'NR':
-                    velocity[count] = 'NR'
-            velocityInstance = pd.DataFrame([velocity], index = [time_track], columns = [box_title])
-            velocities = pd.concat([velocities, velocityInstance])
+            if time_track == 0:
+                pass
+            else:
+                # initalize new row with placeholder values 
+                addition = pd.DataFrame([centroids], index = [time_track], columns = [box_title])
+                # concatenate to the dataframe
+                data = pd.concat([data, addition])
+                # indexing position from last frame 
+                lastPlace = data.loc[lastTime,:]  
+                # indexing position from current frame
+                currentPlace = addition.loc[time_track,:]
+                # velocity calculation
+                velocity = [None]*numberOfChildrenPlusRobot
+                for count in range(numberOfChildrenPlusRobot):
+                    if currentPlace[count] != 'NR' and lastPlace[count] != 'NR':
+                        velocity[count] = (np.array(currentPlace[count])-np.array(lastPlace[count]))*pix2ft/(time_track-lastTime)
+                    elif currentPlace[count] == 'NR' or lastPlace[count] == 'NR':
+                        velocity[count] = 'NR'
+                velocityInstance = pd.DataFrame([velocity], index = [time_track], columns = [box_title])
+                velocities = pd.concat([velocities, velocityInstance])
                     
     # show the output frame
     cv2.imshow("Frame", frame)
     # time.sleep(10)
-    key = cv2.waitKey(-1) & 0xFF
+    key = cv2.waitKey(1) & 0xFF
     # save last time for velocity calc
     lastTime = time_track
 
@@ -351,7 +351,7 @@ while True:
         number = keys[key]
         try:
             if trackers[number].getObjects() != ():
-                trackers[number] = cv2.MultiTracker_create()
+                trackers[number] = cv2.legacy.MultiTracker_create()
 
             # select the bounding box of the object we want to track (make
             # sure you press ENTER or SPACE after selecting the ROI)
@@ -391,6 +391,9 @@ while True:
     # if the `q` key was pressed, break from the loop
     elif key == ord("q") or key == ord('Q'):
         break
+
+    else:
+        pass
 
 # CLEAN UP & EXPORT 
 ######################################

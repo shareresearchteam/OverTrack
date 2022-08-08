@@ -4,7 +4,7 @@
 
 #################################################################################################
 # EXPERIMENT SPECIFIC! (ALTER THIS AS NECESSARY FOR EACH USE)                                   #
-numberOfChildrenPlusRobot = 9 # the number of children in the play group + 1 for the robot     #
+numberOfChildrenPlusRobot = 2 # the number of children in the play group + 1 for the robot     #
 #################################################################################################
 
 # IMPORTS 
@@ -21,21 +21,22 @@ import numpy as np
 import pandas as pd
 import collections
 import time
-#from goprocam import GoProCamera
-#from goprocam import constants
+from goprocam import GoProCamera
+from goprocam import constants
 import threading
 import sys
 import rospy
 import rospkg
-from camera_tracking.msg import FloatArray, Locations
+from overtrack.msg import FloatArray, Locations
 
 
 # supresses warning about data type comparison between list and np.array 
 import warnings
 import numpy as np
 warnings.simplefilter(action='ignore', category=FutureWarning)
+warnings.simplefilter(action='ignore', category=DeprecationWarning)
 
-# DEFINTIONS 
+# DEFINITIONS 
 ######################################
 # function to check if something is empty 
 def is_empty(any_structure):
@@ -44,17 +45,12 @@ def is_empty(any_structure):
     else:
         return True
 
-def lifeguard(gpcam):
-    """Creates a "lifeguard" thread tasked with keeping the camera alive e.g. for streaming.
-    
-    :param gpcam: a GoProCamera.GoPro instance;
-    :return: a deamon thread running gpcam.KeepAlive(). 
-    
-    Written by P. DERIAN 2018-07-04.
-    """
-    t = threading.Thread(target=GoProCamera.GoPro.KeepAlive, args=(gpcam,), daemon=True)
-    t.start()
-    return t
+def shutdown_hook():
+    # exporting data to excel sheet 
+    data.to_excel('positions.xlsx', index = True, header=["Centroid"])
+    interactions.to_excel('interactions.xlsx', index = True, header=["Centroid"])
+    velocities.to_excel('velocities.xlsx', index = True, header=["Centroid"])
+
 
 # PRE-LOOP 
 ######################################
@@ -62,7 +58,7 @@ def lifeguard(gpcam):
 ap = argparse.ArgumentParser()
 ap.add_argument("-v", "--video", type=str,
     help="path to input video file")
-ap.add_argument("-t", "--tracker", type=str, default="medianflow",
+ap.add_argument("-t", "--tracker", type=str, default="csrt",
     help="OpenCV object tracker type")
 ap.add_argument("-y", "--type", type=str,
     default="DICT_5X5_1000",
@@ -99,29 +95,24 @@ if ARUCO_DICT.get(args["type"], None) is None:
 # initialize a dictionary that maps strings to their corresponding
 # OpenCV object tracker implementations
 OPENCV_OBJECT_TRACKERS = {
-    "csrt": cv2.TrackerCSRT_create,
-    "kcf": cv2.TrackerKCF_create,
-    "boosting": cv2.TrackerBoosting_create,
-    "mil": cv2.TrackerMIL_create,
-    "tld": cv2.TrackerTLD_create,
-    "medianflow": cv2.TrackerMedianFlow_create,
-    "mosse": cv2.TrackerMOSSE_create
+    "csrt": cv2.legacy.TrackerCSRT_create,
+    "kcf": cv2.legacy.TrackerKCF_create,
+    "boosting": cv2.legacy.TrackerBoosting_create,
+    "mil": cv2.legacy.TrackerMIL_create,
+    "tld": cv2.legacy.TrackerTLD_create,
+    "medianflow": cv2.legacy.TrackerMedianFlow_create,
+    "mosse": cv2.legacy.TrackerMOSSE_create
 }
 
 # if a video path was not supplied, grab the reference to the web cam
 if not args.get("video", False):
     print("[INFO] starting video stream...")
-    # vs = VideoStream(src=0).start()
-    vs = cv2.VideoCapture(0)
+    vs = VideoStream(src=0).start()
+
     # go pro settings
-    # gpCam = GoProCamera.GoPro()
-    # gpCam.livestream("start")
-    # vs = cv2.VideoCapture("udp://10.5.5.9:8554", cv2.CAP_FFMPEG)
-    #gpCam.video_settings(res='1080p', fps='30')
-    # not go-pro settings
-    #vs = cv2.VideoCapture('http://192.168.50.76:8080/video')
-    #vs = cv2.VideoCapture('rtsp://admin:cheese@192.168.50.103:8554/1')
-    #vs = FileVideoStream(path='rtsp://admin:cheese@192.168.50.103:8554/1').start(
+    #gpCam = GoProCamera.GoPro()
+    #gpCam.livestream("start")
+    #vs = cv2.VideoCapture("/dev/video42")
     time.sleep(1.0)
 
 # otherwise, grab a reference to the video file
@@ -150,6 +141,7 @@ velocities = pd.DataFrame()
 # ROS config
 pub = rospy.Publisher('locations', FloatArray, queue_size=1)
 rospy.init_node('tracker', anonymous=True)
+rospy.on_shutdown(shutdown_hook)
 rate = rospy.Rate(10) # 10hz
 rosData = Locations()
 rosArray = FloatArray()
@@ -160,7 +152,7 @@ placeholder = ["NR"]*numberOfChildrenPlusRobot # placeholder for centroid spaces
 
 # fills box_titles 
 for count in range(numberOfChildrenPlusRobot):
-    trackers[count] = cv2.MultiTracker_create()
+    trackers[count] = cv2.legacy.MultiTracker_create()
     # header for the future DataFrame
     # create a list of all box titles with a space for the structure of the DataFrame
     if count == 0:
@@ -176,7 +168,7 @@ lastTime = 0
 #initialize counts 
 frameCount = 0 # count to skip frames 
 macroCount = 0 # total count 
-childCount = 0 # child status count 
+childCount = 0 # child status count
 
 # constants for distance calculations 
 dirSocialInteraction = 1 # ft
@@ -207,11 +199,12 @@ while not rospy.is_shutdown():
     frame = vs.read()
     frame = frame[1] # if args.get("video", False) else frame
     #increment global frame count 
-    macroCount = macroCount + 1 
+    macroCount = macroCount + 1
 
     # check to see if we have reached the end of the stream
     if frame is None:
         break
+
     # resize the frame (so we can process it faster)
     frame = imutils.resize(frame, width=800)
 
@@ -219,7 +212,7 @@ while not rospy.is_shutdown():
     # object that is being tracked
     for count, tracker in enumerate(trackers):
         (success, box) = tracker.update(frame)
-        if box != ():
+        if len(box) > 0:
             box = box[0]
             (x, y, w, h) = [int(v) for v in box]
             boxes[count] = box 
@@ -338,7 +331,7 @@ while not rospy.is_shutdown():
                     del(trackers)
                     trackers = [None]*numberOfChildrenPlusRobot
                     for count_in, box in enumerate(boxes): 
-                        trackers[count_in] = cv2.MultiTracker_create()
+                        trackers[count_in] = cv2.legacy.MultiTracker_create()
                         if box != 'NR': # if the box exists then re-initialize the tracker
                             trackerHolder = OPENCV_OBJECT_TRACKERS[args["tracker"]]()
                             box = tuple(box)
@@ -421,25 +414,30 @@ while not rospy.is_shutdown():
             data.iloc[0,0:len(centroids)] = centroids # first 0 index serves to constrain data replacement
 
         else:
-            # initalize new row with placeholder values 
-            addition = pd.DataFrame([centroids], index = [time_track], columns = [box_title])
-            # concatenate to the dataframe
-            data = pd.concat([data, addition])
-            # indexing position from last frame 
-            lastPlace = data.loc[lastTime,:]  
-            # indexing position from current frame
-            currentPlace = addition.loc[time_track,:]
-            # velocity calculation
-            velocity = [None]*numberOfChildrenPlusRobot
-            for count in range(numberOfChildrenPlusRobot):
-                if currentPlace[count] != 'NR' and lastPlace[count] != 'NR':
-                    velocity[count] = (np.array(currentPlace[count])-np.array(lastPlace[count]))*pix2ft/(time_track-lastTime)
-                elif currentPlace[count] == 'NR' or lastPlace[count] == 'NR':
-                    velocity[count] = 'NR'
-            velocityInstance = pd.DataFrame([velocity], index = [time_track], columns = [box_title])
-            velocities = pd.concat([velocities, velocityInstance])
+            if time_track == 0:
+                pass
+            else:
+                # initalize new row with placeholder values 
+                addition = pd.DataFrame([centroids], index = [time_track], columns = [box_title])
+                # concatenate to the dataframe
+                data = pd.concat([data, addition])
+                # indexing position from last frame 
+                lastPlace = data.loc[lastTime,:]  
+                # indexing position from current frame
+                currentPlace = addition.loc[time_track,:]
+                # velocity calculation
+                velocity = [None]*numberOfChildrenPlusRobot
+                for count in range(numberOfChildrenPlusRobot):
+                    if currentPlace[count] != 'NR' and lastPlace[count] != 'NR':
+                        velocity[count] = (np.array(currentPlace[count])-np.array(lastPlace[count]))*pix2ft/(time_track-lastTime)
+                    elif currentPlace[count] == 'NR' or lastPlace[count] == 'NR':
+                        velocity[count] = 'NR'
+                velocityInstance = pd.DataFrame([velocity], index = [time_track], columns = [box_title])
+                velocities = pd.concat([velocities, velocityInstance])
+
+    # publish robot and box centers to ROS          
     rosArray.FloatArray.append(rosData)
-    pub.publish(rosArray) # publish robot and box centers to ROS                
+    pub.publish(rosArray)                
     # show the output frame
     cv2.imshow("Frame", frame)
     key = cv2.waitKey(1) & 0xFF
@@ -458,7 +456,7 @@ while not rospy.is_shutdown():
         number = keys[key]
         try:
             if trackers[number].getObjects() != ():
-                trackers[number] = cv2.MultiTracker_create()
+                trackers[number] = cv2.legacy.MultiTracker_create()
 
             # select the bounding box of the object we want to track (make
             # sure you press ENTER or SPACE after selecting the ROI)
@@ -481,6 +479,7 @@ while not rospy.is_shutdown():
             print("A region was not selected. Please try again.")
             pass
 
+
     # if 'b' key is pressed the bounding box of the play area will be selected
     elif key == ord('b') or key == ord('B'):
         playarea = cv2.selectROI("Frame", frame, fromCenter=False,
@@ -502,7 +501,7 @@ while not rospy.is_shutdown():
 ######################################
 # if we are using a webcam, release the pointer
 if not args.get("video", False):
-    vs.stop()
+    vs.release()
 
 # otherwise, release the file pointer
 else:
@@ -511,8 +510,3 @@ else:
 # close all windows
 cv2.destroyAllWindows()
 
-# exporting data to excel sheet 
-# exporting data to excel sheet 
-data.to_excel('positions.xlsx', index = True, header=["Centroid"])
-interactions.to_excel('interactions.xlsx', index = True, header=["Centroid"])
-velocities.to_excel('velocities.xlsx', index = True, header=["Centroid"])
