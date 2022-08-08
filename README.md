@@ -25,11 +25,10 @@ openpyxl - pip3 install openpyxl
 
 2. Create a catkin workspace (if you do not have one already)
 3. Navigate to the src folder in your catkin workspace: ```cd ~/catkin_ws/src```
-4. Create a folder called camera_tracking. If you wish to use a different package name, update the CMakeLists.txt and launch file with the appropriate package name.
-5. Clone this repository: ```git clone https://github.com/shareresearchteam/Overhead_Tracking_System```
-6. Compile and build the package: ```cd ~/catkin_ws && catkin_make```
-7. Add the catkin workspace to your ROS environment: ```source ~/catkin_ws/devel/setup.bash```
-8. Run the launch file depending on your version of ROS: ```roslaunch camera_tracking camera_tracking.launch```
+4. Clone this repository: ```git clone https://github.com/shareresearchteam/OverTrack```
+5. Compile and build the package: ```cd ~/catkin_ws && catkin_make```
+6. Add the catkin workspace to your ROS environment: ```source ~/catkin_ws/devel/setup.bash```
+7. Run the launch file depending on your version of ROS: ```roslaunch camera_tracking camera_tracking.launch```
 
 # Windows Installation
 Only the non-ROS scripts have been tested with Windows. These instructions do not include setting up ROS with Windows. Please see http://wiki.ros.org/Installation/Windows for further instructions on configuring ROS with Windows.
@@ -38,7 +37,7 @@ Only the non-ROS scripts have been tested with Windows. These instructions do no
 2. Install Python if not already installed - https://www.python.org/downloads/windows/
 3. Install dependencies listed above
 4. Clone repository using either Terminal or web GUI.
-6. Navigate to the cloned repository in Terminal and run script of choice.
+6. Navigate to the cloned repository in Terminal and run script of choice using Running Without ROS commands.
 
 # Mac Installation
 Installation on Mac follows Linux instructions. The XCode Command Line Tools package or Homebrew may need to be installed:
