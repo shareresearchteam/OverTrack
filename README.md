@@ -4,8 +4,11 @@ This tool is used to track regions-of-interest (ROI) from a single overhead came
 This tool was constructed in part using OpenCV (https://opencv.org/), imutils (https://github.com/PyImageSearch/imutils), and pandas (https://pandas.pydata.org/).
 
 **OverTrackFullFrames** - This file will run the tracker with either a video or in real-time with no ROS setup.
+
 **OverTrackFullFramesLegacy** - This file is the same as the original tracker but incorporates the legacy versions of the OpenCV MultiTracker tool for use with certain versions of Python3 and OpenCV.  
+
 **OverTrackFullFramesArUcoROS** - This file can be used with versions of ROS that are older than Noetic.  
+
 **OverTrackFullFramesArUcoROSLegacy** - This file is the same as the ROS file but incorporates the legacy versions of the OpenCV MultiTracker tool for use with certain versions of Python3 and OpenCV. This version is most compatible with ROS Noetic.  
 
 # Compatibility
