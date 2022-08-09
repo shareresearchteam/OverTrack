@@ -44,7 +44,7 @@ Only the non-ROS scripts have been tested with Windows. These instructions do no
 4. Clone repository using either Terminal or web GUI.
 6. Navigate to the cloned repository in Terminal and run script of choice using Running Without ROS commands.
 
-If you have issues with modules not being found while running, it is possible there is a Python version mismatch. Try uninstalling (pip3 uninstall dependency_name) and then using python3 -m pip install dependency_name for installing dependencies.
+If you have issues with modules not being found while running, it is possible there is a Python version mismatch. Try uninstalling (pip3 uninstall dependency_name) and then using ```python3 -m pip install dependency_name``` for installing dependencies.
 
 # Mac Installation
 Installation on Mac follows Linux instructions. The XCode Command Line Tools package or Homebrew may need to be installed:
