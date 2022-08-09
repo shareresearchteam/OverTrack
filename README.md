@@ -41,16 +41,18 @@ Only the non-ROS scripts have been tested with Windows. These instructions do no
 4. Clone repository using either Terminal or web GUI.
 6. Navigate to the cloned repository in Terminal and run script of choice using Running Without ROS commands.
 
+If you have issues with modules not being found while running, it is possible there is a Python version mismatch. Try uninstalling (pip3 uninstall dependency_name) and then using python3 -m pip install dependency_name for installing dependencies.
+
 # Mac Installation
 Installation on Mac follows Linux instructions. The XCode Command Line Tools package or Homebrew may need to be installed:
 https://www.freecodecamp.org/news/install-xcode-command-line-tools/
 
 # Usage
 
-The following commands are used to operate the tool. You must create a boundary first before the trackers will be visualized. They will still be tracked without a boundary but will not display.
+The following commands are used to operate the tool. You must create a perimeter box first before the trackers will be visualized. They will still be tracked without a perimeter box but will not display.
 
 **b** - Allows user to draw perimeter box. This is needed to ensure that if a tracked ROI leaves the perimeter, then it will be removed and can be re-drawn when the ROI comes back within the perimeter box.  
-**s** - Allows user to draw a box that defines the scale. TODO - does this need some tweaking?  
+**s** - Allows user to draw a box that defines the scale. 
 **r** - Allows user to draw a box over the robot and track it independently of other ROI in the environment.  
 **1-9** - Allows user to draw a box over a ROI and track it with the numerical indicator. The available number of boxes corresponds to the variable numberOfChildrenPlusRobot at the top of each script.  
 **c** - Cancels a drawing operation.  
