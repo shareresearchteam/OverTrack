@@ -7,9 +7,9 @@ This tool was constructed in part using OpenCV (https://opencv.org/), imutils (h
 
 **OverTrackFullFramesLegacy** - This file is the same as the original tracker but incorporates the legacy versions of the OpenCV MultiTracker tool for use with certain versions of Python3 and OpenCV.  
 
-**OverTrackFullFramesArUcoROS** - This file can be used with versions of ROS that are older than Noetic.  
+**OverTrackFullFramesarUcoROS** - This file can be used with versions of ROS that are older than Noetic.  
 
-**OverTrackFullFramesArUcoROSLegacy** - This file is the same as the ROS file but incorporates the legacy versions of the OpenCV MultiTracker tool for use with certain versions of Python3 and OpenCV. This version is most compatible with ROS Noetic.  
+**OverTrackFullFramesarUcoROSLegacy** - This file is the same as the ROS file but incorporates the legacy versions of the OpenCV MultiTracker tool for use with certain versions of Python3 and OpenCV. This version is most compatible with ROS Noetic.  
 
 # Compatibility
 This tool has been successfully tested on Linux (Ubuntu), Mac OS X Maverick, and Windows 10 and 11 machines.
