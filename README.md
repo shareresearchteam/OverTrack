@@ -21,11 +21,9 @@ This tool has been successfully tested on ROS versions Kinetic, Melodic, and Noe
 
 1. Install Dependencies:
 ```
-Numpy
 pip3 install numpy
-
 pip3 install imutils
-pip3 install opencv-contrib-python (needs to be contrib version)
+pip3 install opencv-contrib-python
 pip3 install pandas
 pip3 install openpyxl
 ```
