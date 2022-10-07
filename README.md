@@ -21,11 +21,13 @@ This tool has been successfully tested on ROS versions Kinetic, Melodic, and Noe
 
 1. Install Dependencies:
 ```
-numpy - pip3 install numpy
-imutils - pip3 install imutils
-cv2 - pip3 install opencv-contrib-python (needs to be contrib version)
-pandas - pip3 install pandas
-openpyxl - pip3 install openpyxl
+Numpy
+pip3 install numpy
+
+pip3 install imutils
+pip3 install opencv-contrib-python (needs to be contrib version)
+pip3 install pandas
+pip3 install openpyxl
 ```
 
 2. Create a catkin workspace (if you do not have one already)
