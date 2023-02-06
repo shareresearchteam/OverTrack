@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 # USAGE
-# python3 ROITrackerFullFrames.py --video videos/Test2.avi --tracker csrt
+# python3 OverTrackarUcoROSLegacy.py --video videos/Test2.avi --tracker csrt
 
 #################################################################################################
 # EXPERIMENT SPECIFIC! (ALTER THIS AS NECESSARY FOR EACH USE)                                   #
@@ -16,7 +16,6 @@ import argparse
 import imutils
 import time
 import cv2
-import csv
 import numpy as np
 import pandas as pd
 import collections
@@ -27,8 +26,7 @@ import threading
 import sys
 import rospy
 import rospkg
-from overtrack.msg import FloatArray, Locations
-
+from std_msgs.msg import Float32MultiArray
 
 # supresses warning about data type comparison between list and np.array 
 import warnings
@@ -46,7 +44,8 @@ def is_empty(any_structure):
         return True
 
 def shutdown_hook():
-    # exporting data to excel sheet 
+    # exporting data to excel sheet
+    data.loc[data.index[0], 'Scale'] = round(pix2ft,3)
     data.to_excel('positions.xlsx', index = True, header=["Centroid"])
     interactions.to_excel('interactions.xlsx', index = True, header=["Centroid"])
     velocities.to_excel('velocities.xlsx', index = True, header=["Centroid"])
@@ -107,12 +106,9 @@ OPENCV_OBJECT_TRACKERS = {
 # if a video path was not supplied, grab the reference to the web cam
 if not args.get("video", False):
     print("[INFO] starting video stream...")
-    vs = VideoStream(src=0).start()
+    #vs = VideoStream(src=0).start()
 
-    # go pro settings
-    #gpCam = GoProCamera.GoPro()
-    #gpCam.livestream("start")
-    #vs = cv2.VideoCapture("/dev/video42")
+    vs = cv2.VideoCapture("/dev/video42")
     time.sleep(1.0)
 
 # otherwise, grab a reference to the video file
@@ -139,12 +135,13 @@ data = pd.DataFrame()
 velocities = pd.DataFrame()
 
 # ROS config
-pub = rospy.Publisher('locations', FloatArray, queue_size=1)
+pub = rospy.Publisher('locations', Float32MultiArray, queue_size=1)
 rospy.init_node('tracker', anonymous=True)
 rospy.on_shutdown(shutdown_hook)
 rate = rospy.Rate(10) # 10hz
-rosData = Locations()
-rosArray = FloatArray()
+rosData = [0,0,0,0,0,0]
+rosArray = Float32MultiArray()
+arucoTag = False
 
 # placeholders 
 trackers = [None]*numberOfChildrenPlusRobot # placeholder for trackers                          
@@ -244,8 +241,9 @@ while not rospy.is_shutdown():
             # ArUco marker
             cX = int((topLeft[0] + bottomRight[0]) / 2.0)
             cY = int((topLeft[1] + bottomRight[1]) / 2.0)
-            rosData.robot_x = cX
-            rosData.robot_y = cY
+            rosData[0] = cX
+            rosData[1] = cY
+            arucoTag = True
             
             cv2.circle(frame, (cX, cY), 4, (0, 0, 255), -1)
             # draw the ArUco marker ID on the frame
@@ -309,8 +307,15 @@ while not rospy.is_shutdown():
     
                     # append each centroid to a list 
                     centroids.append(centroid)
-                    rosData.child_x = centroid[0]
-                    rosData.child_y = centroid[1]
+                    if count_out == 0:
+                        rosData[0] = centroid[0]
+                        rosData[1] = centroid[1]
+                    if count_out == 1:
+                        rosData[2] = centroid[0]
+                        rosData[3] = centroid[1]
+                    rosData[4] = np.sqrt((rosData[2] - rosData[0])**2 + (rosData[3] - rosData[1])**2)*pix2ft
+                    rosData[5] = pix2ft
+
                     # x and y are coordinates of top left point 
                     (x, y, w, h) = [int(v) for v in box]
                     # numbering/labeling boxes 
@@ -435,8 +440,16 @@ while not rospy.is_shutdown():
                 velocityInstance = pd.DataFrame([velocity], index = [time_track], columns = [box_title])
                 velocities = pd.concat([velocities, velocityInstance])
 
+    else:
+        rosData[0] = 0
+        rosData[1] = 0
+        rosData[2] = 0
+        rosData[3] = 0
+        rosData[4] = 0
+        rosData[5] = pix2ft
+
     # publish robot and box centers to ROS          
-    rosArray.FloatArray.append(rosData)
+    rosArray.data = rosData
     pub.publish(rosArray)                
     # show the output frame
     cv2.imshow("Frame", frame)
@@ -509,4 +522,3 @@ else:
 
 # close all windows
 cv2.destroyAllWindows()
-

@@ -1,10 +1,10 @@
 #!/usr/bin/env python3
 # USAGE
-# python3 ROITrackerFullFrames.py --video videos/Test2.avi --tracker csrt
+# python3 OverTrackarUcoROS.py --video videos/Test2.avi --tracker csrt
 
 #################################################################################################
 # EXPERIMENT SPECIFIC! (ALTER THIS AS NECESSARY FOR EACH USE)                                   #
-numberOfChildrenPlusRobot = 3 # the number of children in the play group + 1 for the robot     #
+numberOfChildrenPlusRobot = 2 # the number of children in the play group + 1 for the robot     #
 #################################################################################################
 
 # IMPORTS 
@@ -16,18 +16,17 @@ import argparse
 import imutils
 import time
 import cv2
-import csv
 import numpy as np
 import pandas as pd
 import collections
 import time
+from goprocam import GoProCamera
+from goprocam import constants
 import threading
 import sys
 import rospy
 import rospkg
-from overtrack.msg import FloatArray, Locations
-#from goprocam import GoProCamera
-#from goprocam import constants
+from std_msgs.msg import Float32MultiArray
 
 # supresses warning about data type comparison between list and np.array 
 import warnings
@@ -44,17 +43,13 @@ def is_empty(any_structure):
     else:
         return True
 
-def lifeguard(gpcam):
-    """Creates a "lifeguard" thread tasked with keeping the camera alive e.g. for streaming.
-    
-    :param gpcam: a GoProCamera.GoPro instance;
-    :return: a deamon thread running gpcam.KeepAlive(). 
-    
-    Written by P. DERIAN 2018-07-04.
-    """
-    t = threading.Thread(target=GoProCamera.GoPro.KeepAlive, args=(gpcam,), daemon=True)
-    t.start()
-    return t
+def shutdown_hook():
+    # exporting data to excel sheet
+    data.loc[data.index[0], 'Scale'] = round(pix2ft,3)
+    data.to_excel('positions.xlsx', index = True, header=["Centroid"])
+    interactions.to_excel('interactions.xlsx', index = True, header=["Centroid"])
+    velocities.to_excel('velocities.xlsx', index = True, header=["Centroid"])
+
 
 # PRE-LOOP 
 ######################################
@@ -62,7 +57,7 @@ def lifeguard(gpcam):
 ap = argparse.ArgumentParser()
 ap.add_argument("-v", "--video", type=str,
     help="path to input video file")
-ap.add_argument("-t", "--tracker", type=str, default="medianflow",
+ap.add_argument("-t", "--tracker", type=str, default="csrt",
     help="OpenCV object tracker type")
 ap.add_argument("-y", "--type", type=str,
     default="DICT_5X5_1000",
@@ -111,8 +106,9 @@ OPENCV_OBJECT_TRACKERS = {
 # if a video path was not supplied, grab the reference to the web cam
 if not args.get("video", False):
     print("[INFO] starting video stream...")
-    # vs = VideoStream(src=0).start()
-    vs = cv2.VideoCapture(0)
+    #vs = VideoStream(src=0).start()
+
+    vs = cv2.VideoCapture("/dev/video42")
     time.sleep(1.0)
 
 # otherwise, grab a reference to the video file
@@ -139,11 +135,13 @@ data = pd.DataFrame()
 velocities = pd.DataFrame()
 
 # ROS config
-pub = rospy.Publisher('locations', FloatArray, queue_size=1)
+pub = rospy.Publisher('locations', Float32MultiArray, queue_size=1)
 rospy.init_node('tracker', anonymous=True)
+rospy.on_shutdown(shutdown_hook)
 rate = rospy.Rate(10) # 10hz
-rosData = Locations()
-rosArray = FloatArray()
+rosData = [0,0,0,0,0,0]
+rosArray = Float32MultiArray()
+arucoTag = False
 
 # placeholders 
 trackers = [None]*numberOfChildrenPlusRobot # placeholder for trackers                          
@@ -167,7 +165,7 @@ lastTime = 0
 #initialize counts 
 frameCount = 0 # count to skip frames 
 macroCount = 0 # total count 
-childCount = 0 # child status count 
+childCount = 0 # child status count
 
 # constants for distance calculations 
 dirSocialInteraction = 1 # ft
@@ -198,11 +196,12 @@ while not rospy.is_shutdown():
     frame = vs.read()
     frame = frame[1] # if args.get("video", False) else frame
     #increment global frame count 
-    macroCount = macroCount + 1 
+    macroCount = macroCount + 1
 
     # check to see if we have reached the end of the stream
     if frame is None:
         break
+
     # resize the frame (so we can process it faster)
     frame = imutils.resize(frame, width=800)
 
@@ -210,7 +209,7 @@ while not rospy.is_shutdown():
     # object that is being tracked
     for count, tracker in enumerate(trackers):
         (success, box) = tracker.update(frame)
-        if box != ():
+        if len(box) > 0:
             box = box[0]
             (x, y, w, h) = [int(v) for v in box]
             boxes[count] = box 
@@ -242,8 +241,9 @@ while not rospy.is_shutdown():
             # ArUco marker
             cX = int((topLeft[0] + bottomRight[0]) / 2.0)
             cY = int((topLeft[1] + bottomRight[1]) / 2.0)
-            rosData.robot_x = cX
-            rosData.robot_y = cY
+            rosData[0] = cX
+            rosData[1] = cY
+            arucoTag = True
             
             cv2.circle(frame, (cX, cY), 4, (0, 0, 255), -1)
             # draw the ArUco marker ID on the frame
@@ -307,8 +307,15 @@ while not rospy.is_shutdown():
     
                     # append each centroid to a list 
                     centroids.append(centroid)
-                    rosData.child_x = centroid[0]
-                    rosData.child_y = centroid[1]
+                    if count_out == 0:
+                        rosData[0] = centroid[0]
+                        rosData[1] = centroid[1]
+                    if count_out == 1:
+                        rosData[2] = centroid[0]
+                        rosData[3] = centroid[1]
+                    rosData[4] = np.sqrt((rosData[2] - rosData[0])**2 + (rosData[3] - rosData[1])**2)*pix2ft
+                    rosData[5] = pix2ft
+
                     # x and y are coordinates of top left point 
                     (x, y, w, h) = [int(v) for v in box]
                     # numbering/labeling boxes 
@@ -433,9 +440,17 @@ while not rospy.is_shutdown():
                 velocityInstance = pd.DataFrame([velocity], index = [time_track], columns = [box_title])
                 velocities = pd.concat([velocities, velocityInstance])
 
-    # publish robot and box centers to ROS
-    rosArray.FloatArray.append(rosData)
-    pub.publish(rosArray)              
+    else:
+        rosData[0] = 0
+        rosData[1] = 0
+        rosData[2] = 0
+        rosData[3] = 0
+        rosData[4] = 0
+        rosData[5] = pix2ft
+
+    # publish robot and box centers to ROS          
+    rosArray.data = rosData
+    pub.publish(rosArray)                
     # show the output frame
     cv2.imshow("Frame", frame)
     key = cv2.waitKey(1) & 0xFF
@@ -477,6 +492,7 @@ while not rospy.is_shutdown():
             print("A region was not selected. Please try again.")
             pass
 
+
     # if 'b' key is pressed the bounding box of the play area will be selected
     elif key == ord('b') or key == ord('B'):
         playarea = cv2.selectROI("Frame", frame, fromCenter=False,
@@ -498,7 +514,7 @@ while not rospy.is_shutdown():
 ######################################
 # if we are using a webcam, release the pointer
 if not args.get("video", False):
-    vs.stop()
+    vs.release()
 
 # otherwise, release the file pointer
 else:
@@ -506,9 +522,3 @@ else:
 
 # close all windows
 cv2.destroyAllWindows()
-
-# exporting data to excel sheet 
-# exporting data to excel sheet 
-data.to_excel('positions.xlsx', index = True, header=["Centroid"])
-interactions.to_excel('interactions.xlsx', index = True, header=["Centroid"])
-velocities.to_excel('velocities.xlsx', index = True, header=["Centroid"])
