@@ -33,7 +33,7 @@ pip3 install openpyxl
 4. Clone this repository: ```git clone https://github.com/shareresearchteam/OverTrack```
 5. Compile and build the package: ```cd ~/catkin_ws && catkin_make```
 6. Add the catkin workspace to your ROS environment: ```source ~/catkin_ws/devel/setup.bash```
-7. Run the launch file depending on your version of ROS: ```roslaunch camera_tracking camera_tracking.launch```
+7. Run the launch file depending on your version of ROS: ```roslaunch overtrack camera_tracking.launch```
 
 # Windows Installation
 Only the non-ROS scripts have been tested with Windows. These instructions do not include setting up ROS with Windows. Please see http://wiki.ros.org/Installation/Windows for further instructions on configuring ROS with Windows.
