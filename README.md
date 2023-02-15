@@ -72,6 +72,6 @@ The variable numberOfChildrenPlusRobot can be altered if more bounding boxes are
 
 # Running without ROS
 Example command for running on a video file (put video file in a folder called videos next to the script):
-```python3 OverTrackFullFramesLegacy.py --video videos/video_name.video_type --tracker csrt```
+```python3 OverTrack_FullFramesLegacy.py --video videos/video_name.video_type --tracker csrt```
 
 If using the aruco file, add parameter --type (define aruco dictionary type) (default is DICT_5X5_1000)
