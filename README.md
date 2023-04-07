@@ -7,9 +7,9 @@ This tool was constructed in part using OpenCV (https://opencv.org/), imutils (h
 
 **OverTrackFullFramesLegacy** - This file is the same as the original tracker but incorporates the legacy versions of the OpenCV MultiTracker tool for use with certain versions of Python3 and OpenCV.  
 
-**OverTrackFullFramesarUcoROS** - This file can be used with versions of ROS that are older than Noetic.  
+**OverTrack_arUco_ROS** - This file can be used with versions of ROS that are older than Noetic.  
 
-**OverTrackFullFramesarUcoROSLegacy** - This file is the same as the ROS file but incorporates the legacy versions of the OpenCV MultiTracker tool for use with certain versions of Python3 and OpenCV. This version is most compatible with ROS Noetic.  
+**OverTrack_arUco_ROS_Legacy** - This file is the same as the ROS file but incorporates the legacy versions of the OpenCV MultiTracker tool for use with certain versions of Python3 and OpenCV. This version is most compatible with ROS Noetic.  
 
 # Compatibility
 This tool has been successfully tested on Linux (Ubuntu), Mac OS X Maverick, and Windows 10 and 11 machines.
@@ -72,6 +72,6 @@ The variable numberOfChildrenPlusRobot can be altered if more bounding boxes are
 
 # Running without ROS
 Example command for running on a video file (put video file in a folder called videos next to the script):
-```python3 OverTrack_FullFramesLegacy.py --video videos/video_name.video_type --tracker csrt```
+```python3 OverTrack_FullFramesLegacy.py --video videos/video_name.video_type --tracker tracker_type```
 
-If using the aruco file, add parameter --type (define aruco dictionary type) (default is DICT_5X5_1000)
+If using the arUco file, add parameter --type (define aruco dictionary type) (default is DICT_5X5_1000)
